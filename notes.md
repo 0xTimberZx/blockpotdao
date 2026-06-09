@@ -16,11 +16,13 @@ Optimizer: OFF
 | PrizeVault    | TBD     | ❌       |
 
 ## Deployment Log
-- [ ] DAPPToken deployed
-- [ ] Treasury deployed
+- [x] DAPPToken deployed + verified ✅
+- [x] Treasury deployed + verified ✅
+- [x] 1,000,000 DAPP transferred to Treasury ✅
+- [x] setTreasury() called on DAPPToken ✅
 - [ ] StakingPool deployed
 - [ ] TimerGame deployed
 - [ ] PrizeVault deployed
-- [ ] All Sourcify verified
+- [ ] setStakingPool() called on Treasury
 - [ ] All authorizations wired
 - [ ] Tested with 3 wallets
