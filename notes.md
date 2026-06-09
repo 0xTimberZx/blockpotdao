@@ -13,7 +13,7 @@ Optimizer: OFF
 | Treasury      | 0x8E89e183B2eD82f64972EFCDE70C12319cD70b26     | https://repo.sourcify.dev/421614/0x8E89e183B2eD82f64972EFCDE70C12319cD70b26       |
 | StakingPool   | TBD     | ❌       |
 | TimerGame     | TBD     | ❌       |
-| PrizeVault    | TBD     | ❌       |
+| PrizeVault    | 0xB563B77Bc55B2E5A0f3f1371f427AE383cfE79Ef     | https://repo.sourcify.dev/421614/0xB563B77Bc55B2E5A0f3f1371f427AE383cfE79Ef       |
 
 ## Deployment Log
 - [x] DAPPToken deployed + verified ✅
