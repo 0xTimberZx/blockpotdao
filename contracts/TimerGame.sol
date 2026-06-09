@@ -340,25 +340,23 @@ contract TimerGame {
     // 2. Longest duration in that tier
     // 3. Largest stake size
     // Only considers stakes active in last 650hrs
+    // ── LEADERBOARD STRUCT ────────────────────
+    // Reduces stack depth in getTop2()
+    struct RankSlot {
+        address wallet;
+        uint8   tier;
+        uint256 duration;
+        uint256 amount;
+    }
+
+    // ── LEADERBOARD: GET TOP 2 ────────────────
     function getTop2() public view returns (
         address first,
         address second,
         bool    valid
     ) {
-        uint256 windowStart = block.timestamp > LEADERBOARD_WINDOW
-            ? block.timestamp - LEADERBOARD_WINDOW
-            : 0;
-
-        address bestAddr   = address(0);
-        address secondAddr = address(0);
-
-        uint8   bestTier      = 0;
-        uint256 bestDuration  = 0;
-        uint256 bestAmount    = 0;
-
-        uint8   secTier      = 0;
-        uint256 secDuration  = 0;
-        uint256 secAmount    = 0;
+        RankSlot memory best;
+        RankSlot memory sec;
 
         uint256 len = registeredWallets.length;
 
@@ -374,63 +372,37 @@ contract TimerGame {
             ) = IStakingPool(stakingPool).getBestStake(wallet);
 
             if (!found) continue;
-
-            // Check stake was active in window
-            // tierDuration = time in current tier
-            // Use startTime proxy via tierDuration
-            // A stake active in window has
-            // tierDuration > 0 or started recently
             if (amount == 0) continue;
 
-            // Compare against first place
             bool betterThanFirst = _rankBetter(
                 tier, tierDuration, amount,
-                bestTier, bestDuration, bestAmount
+                best.tier, best.duration, best.amount
             );
 
             if (betterThanFirst) {
-                // Demote first to second
-                secondAddr = bestAddr;
-                secTier     = bestTier;
-                secDuration = bestDuration;
-                secAmount   = bestAmount;
-
-                // New first
-                bestAddr     = wallet;
-                bestTier     = tier;
-                bestDuration = tierDuration;
-                bestAmount   = amount;
+                sec  = best;
+                best = RankSlot(wallet, tier, tierDuration, amount);
             } else {
-                // Compare against second place
                 bool betterThanSecond = _rankBetter(
                     tier, tierDuration, amount,
-                    secTier, secDuration, secAmount
+                    sec.tier, sec.duration, sec.amount
                 );
                 if (betterThanSecond) {
-                    secondAddr  = wallet;
-                    secTier     = tier;
-                    secDuration = tierDuration;
-                    secAmount   = amount;
+                    sec = RankSlot(
+                        wallet, tier, tierDuration, amount
+                    );
                 }
             }
         }
 
-        // Need at least 2 valid stakers for split
-        // If only 1 found, first takes all via
-        // fallback in _triggerTimeoutWin
-        valid = (bestAddr != address(0) &&
-                 secondAddr != address(0));
-
-        // If only one staker exists give them
-        // both slots — distributeSplit will
-        // still pay 70/30 to same address
-        if (bestAddr != address(0) &&
-            secondAddr == address(0)) {
-            secondAddr = bestAddr;
-            valid = true;
+        // If only one staker give them both slots
+        if (best.wallet != address(0) &&
+            sec.wallet == address(0)) {
+            sec = best;
         }
 
-        return (bestAddr, secondAddr, valid);
+        valid = best.wallet != address(0);
+        return (best.wallet, sec.wallet, valid);
     }
 
     // ── INTERNAL: ranking comparator ──────────
