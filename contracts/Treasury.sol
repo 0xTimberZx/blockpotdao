@@ -110,51 +110,35 @@ contract Treasury {
         emit Distributed(recipient, payout);
     }
 
-    // ── EMISSION MATH (pure — no state change) ─
+    // ── EMISSION MATH (UPDATED) ───────────────
+// Sacred rule: 1 ETH = 1000 DAPP budget
+// All emissions released over fixed 654hr window
+// Rate = budget ÷ window — no timer scaling
 
-    // Sacred rule: 1 ETH = 1000 DAPP
-    // over the current variable time window
-    // timerSeconds = current timer value in seconds
-    // maxTimerSeconds = 654 hours in seconds
-    // prizePoolWei = current ETH in prize vault
-    function calculateEmissionRate(
-        uint256 prizePoolWei,
-        uint256 timerSeconds,
-        uint256 maxTimerSeconds
-    ) public pure returns (uint256 tokensPerSecond) {
+uint256 public constant EMISSION_WINDOW = 654 hours;
 
-        // Total tokens this prize pool size unlocks
-        // prizePoolWei / 1e18 * TOKENS_PER_ETH * 1e18
-        uint256 totalTokensForPool =
-            (prizePoolWei * TOKENS_PER_ETH);
+function calculateEmissionRate(
+    uint256 prizePoolWei,
+    uint256, // timerSeconds — kept for ABI compatibility
+    uint256  // maxTimerSeconds — kept for ABI compatibility
+) public pure returns (uint256 tokensPerSecond) {
 
-        // Timer proximity ratio
-        // Closer to 0:00 = smaller ratio = slower rate
-        // Closer to 654hrs = larger ratio = faster rate
-        // ratio = timerSeconds / maxTimerSeconds
-        // tokensPerSecond = totalTokensForPool
-        //                   * timerSeconds
-        //                   / maxTimerSeconds
-        //                   / maxTimerSeconds
-        // Dividing by maxTimerSeconds twice:
-        // once to normalize ratio,
-        // once to convert total→per-second
-        if (timerSeconds == 0) {
-            return EMISSION_FLOOR;
-        }
+    // Total DAPP budget for current prize pool size
+    // 1 ETH = 1000 DAPP = 1000 * 1e18 base units
+    uint256 totalBudget =
+        (prizePoolWei * TOKENS_PER_ETH);
 
-        tokensPerSecond =
-            (totalTokensForPool * timerSeconds)
-            / maxTimerSeconds
-            / maxTimerSeconds;
+    // Fixed rate — divide evenly over full window
+    tokensPerSecond = totalBudget / EMISSION_WINDOW;
 
-        // Never below floor
-        if (tokensPerSecond < EMISSION_FLOOR) {
-            tokensPerSecond = EMISSION_FLOOR;
-        }
-
-        return tokensPerSecond;
+    // Never below floor
+    if (tokensPerSecond < EMISSION_FLOOR) {
+        tokensPerSecond = EMISSION_FLOOR;
     }
+
+    return tokensPerSecond;
+}
+
 
     // ── RECYCLING ─────────────────────────────
     // Accepts tokens returned from timer interactions
