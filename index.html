@@ -1,32 +1,27 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BlockpotDAO</title>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- ethers.js v5 -->
+  <!-- Load libraries first, in order -->
   <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
-
-  <!-- React + ReactDOM CDN -->
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-  <!-- Babel for JSX in browser -->
+  <!-- Babel MUST load before app.js is parsed -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- App entry -->
-  <script type="text/babel" src="app.js"></script>
+  <!-- app.js loaded AFTER Babel with text/babel type -->
+  <!-- data-plugins ensures async Babel transform works -->
+  <script type="text/babel" data-presets="react" src="app.js"></script>
 </body>
 </html>
