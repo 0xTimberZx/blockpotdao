@@ -1,1 +1,659 @@
- 
+ @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+    color: #ffffff;
+    font-family: 'Inter', Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 520px;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Header */
+.header {
+    margin-bottom: 32px;
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #58a6ff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 40px rgba(88, 166, 255, 0.3);
+}
+
+.header p {
+    color: #8b949e;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+}
+
+.network-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #1f2937;
+    border: 1px solid #1f6feb;
+    color: #58a6ff;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.network-badge::before {
+    content: "●";
+    color: #238636;
+    font-size: 0.6rem;
+}
+
+/* Wallet Section */
+#walletSection {
+    margin-bottom: 4px;
+}
+
+/* Connect Button */
+#connectBtn {
+    background: linear-gradient(135deg, #1f6feb, #8957e5);
+    color: #ffffff;
+    padding: 14px 28px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', Arial, sans-serif;
+    margin-bottom: 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s ease, transform 0.1s ease;
+    letter-spacing: 0.2px;
+}
+
+#connectBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+#connectBtn:active {
+    transform: translateY(0px);
+}
+
+#connectBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Disconnect Button */
+#disconnectBtn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #b62324;
+    background-color: transparent;
+    color: #f85149;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background-color 0.2s ease;
+}
+
+#disconnectBtn:hover {
+    background-color: #b6232420;
+}
+
+/* Wallet Info Card */
+#walletInfo {
+    margin-bottom: 20px;
+}
+
+.wallet-card {
+    background: linear-gradient(135deg, #161b22, #1c2128);
+    border: 1px solid #238636;
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.wallet-label {
+    color: #238636;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+#walletAddress {
+    color: #8b949e;
+    font-size: 0.8rem;
+    font-family: monospace;
+    background-color: #0d1117;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+}
+
+/* Balance Refresh Button */
+.balance-refresh-btn {
+    width: auto;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    background-color: transparent;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+.balance-refresh-btn:hover {
+    background-color: #21262d;
+}
+
+/* Cards */
+.card {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    text-align: left;
+    transition: border-color 0.2s ease;
+}
+
+.card:hover {
+    border-color: #3d444d;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+h2 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 0;
+}
+
+/* Message Display */
+.message-display {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #e6edf3;
+    margin-bottom: 16px;
+    min-height: 44px;
+    padding: 14px;
+    background-color: #0d1117;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+/* Input */
+input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    background-color: #0d1117;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-family: 'Inter', Arial, sans-serif;
+    margin-bottom: 6px;
+    transition: border-color 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+input::placeholder {
+    color: #484f58;
+}
+
+.char-count {
+    color: #484f58;
+    font-size: 0.75rem;
+    text-align: right;
+    margin-bottom: 14px;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    background-color: #238636;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background-color: #2ea043;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0px);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.secondary-btn {
+    background-color: #21262d;
+    border: 1px solid #30363d;
+    color: #8b949e;
+}
+
+.secondary-btn:hover {
+    background-color: #30363d;
+}
+
+.refresh-btn {
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+/* Status Box */
+#statusBox {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+#status {
+    color: #8b949e;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+#txLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    color: #58a6ff;
+    font-size: 0.8rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#txLink:hover {
+    text-decoration: underline;
+}
+
+/* Spinner */
+.spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #30363d;
+    border-top: 2px solid #58a6ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* History */
+#historyList {
+    color: #8b949e;
+    font-size: 0.9rem;
+}
+
+.history-item {
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-left: 3px solid #1f6feb;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s ease;
+}
+
+.history-item:hover {
+    border-color: #3d444d;
+    border-left-color: #58a6ff;
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+.history-message {
+    color: #e6edf3;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.history-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.history-sender {
+    color: #238636;
+    font-size: 0.75rem;
+    font-family: monospace;
+    background-color: #161b22;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid #238636;
+}
+
+.history-date {
+    color: #8b949e;
+    font-size: 0.75rem;
+}
+
+.history-link {
+    color: #58a6ff;
+    font-size: 0.75rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.history-link:hover {
+    text-decoration: underline;
+}
+
+/* Filter Section */
+.filter-section {
+    margin-bottom: 16px;
+}
+
+.filter-section input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    background-color: #0d1117;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-family: 'Inter', Arial, sans-serif;
+    margin-bottom: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.filter-section input:focus {
+    outline: none;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background-color: #1f6feb;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.filter-btn:hover {
+    background-color: #388bfd;
+    transform: translateY(-1px);
+}
+
+.clear-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #b62324;
+    background-color: transparent;
+    color: #f85149;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clear-btn:hover {
+    background-color: #b6232420;
+}
+
+#filterStatus {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 12px;
+    min-height: 18px;
+    text-align: left;
+    line-height: 1.5;
+}
+
+/* Utility */
+.hidden {
+    display: none;
+}
+
+/* DAPP Token Color */
+.token-symbol {
+    color: #f78166;
+}
+
+.cost-value {
+    color: #f78166;
+}
+
+/* Token Balance Card */
+.token-balance-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#tokenBalance {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #58a6ff;
+}
+
+.token-symbol {
+    font-size: 0.9rem;
+    color: #8b949e;
+    font-weight: 500;
+}
+
+.approval-status {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background-color: #0d1117;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+}
+
+/* Compile Badge */
+.compile-badge {
+    background-color: #1f6feb22;
+    border: 1px solid #1f6feb;
+    color: #58a6ff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Compiled Preview */
+.compiled-preview {
+    margin-top: 16px;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.preview-label {
+    font-size: 0.75rem;
+    color: #8b949e;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.compiled-text {
+    font-size: 0.95rem;
+    color: #e6edf3;
+    word-break: break-word;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* Token Cost Row */
+.token-cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #30363d;
+}
+
+.publish-cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 12px;
+}
+
+.cost-label {
+    font-size: 0.8rem;
+    color: #8b949e;
+}
+
+.cost-value {
+    font-size: 0.9rem;
+    color: #238636;
+    font-weight: 600;
+}
+
+/* Approve Button */
+#approveBtn {
+    background-color: #8957e5;
+    margin-bottom: 0;
+}
+
+#approveBtn:hover {
+    background-color: #a371f7;
+}
+
+/* Compile Button */
+#compileBtn {
+    background-color: #1f6feb;
+}
+
+#compileBtn:hover {
+    background-color: #388bfd;
+}
+
+#compileBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Publish Button */
+#publishBtn {
+    background: linear-gradient(135deg, #238636, #1f6feb);
+}
+
+#publishBtn:hover {
+    opacity: 0.9;
+}
+
+#publishBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* History Cost */
+.history-cost {
+    color: #f78166;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+/* Switch Wallet Button */
+#switchBtn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #1f6feb;
+    background-color: transparent;
+    color: #58a6ff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    font-family: 'Inter', Arial, sans-serif;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background-color 0.2s ease;
+}
+
+#switchBtn:hover {
+    background-color: #1f6feb20;
+}
