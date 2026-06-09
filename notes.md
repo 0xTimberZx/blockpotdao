@@ -9,7 +9,7 @@ Optimizer: OFF
 ## Contracts
 | Contract      | Address | Verified |
 |---------------|---------|----------|
-| DAPPToken     | TBD     | ❌       |
+| DAPPToken     | 0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04     | https://repo.sourcify.dev/421614/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04       |
 | Treasury      | TBD     | ❌       |
 | StakingPool   | TBD     | ❌       |
 | TimerGame     | TBD     | ❌       |
