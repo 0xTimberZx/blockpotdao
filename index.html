@@ -12,16 +12,14 @@
 <body>
   <div id="root"></div>
 
-  <!-- Load libraries first, in order -->
   <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
-  <!-- Babel MUST load before app.js is parsed -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- app.js loaded AFTER Babel with text/babel type -->
-  <!-- data-plugins ensures async Babel transform works -->
-  <script type="text/babel" data-presets="react" src="app.js"></script>
+  <script type="text/babel">
+    // PASTE YOUR ENTIRE app.js CONTENTS HERE
+    
+  </script>
 </body>
 </html>
