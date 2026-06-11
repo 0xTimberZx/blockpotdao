@@ -493,11 +493,23 @@ function MyStakesTab({ wallet }) {
         parseFloat(ethers.utils.formatEther(bal)).toFixed(2)
       );
 
-      // Emission rate preview
-// previewEmissionRate returns (tokensPerSecond, tokensPerHour, totalBudget)
-const result = await treas.previewEmissionRate(prize);
+      // Calculate emission rate directly — no contract call
+// Sacred rule: 1 ETH = 1000 DAPP over 654 hours
+// prize is already a BigNumber in wei
+const EMISSION_WINDOW = 2354400; // 654 hours in seconds
+const TOKENS_PER_ETH = 1000;
+
+// Total budget in token-wei
+const budgetWei = prize.mul(TOKENS_PER_ETH);
+
+// Per second rate
+const ratePerSec = budgetWei.div(EMISSION_WINDOW);
+
+// Per hour
+const ratePerHour = ratePerSec.mul(3600);
+
 setEmission(
-  parseFloat(ethers.utils.formatEther(result.tokensPerHour)).toFixed(4)
+  parseFloat(ethers.utils.formatEther(ratePerHour)).toFixed(6)
 );
 
       // Load each active stake
