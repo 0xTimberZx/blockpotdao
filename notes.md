@@ -17,6 +17,7 @@ Optimizer: OFF
 
 ## Deprecated
 | Treasury v1   | 0x8E89e183B2eD82f64972EFCDE70C12319cD70b26 | retired    |
+| PrizeVault v1 | 0xB563B77Bc55B2E5A0f3f1371f427AE383cfE79Ef | retired    |
 
 ## Deployment Log
 - [x] DAPPToken deployed + verified ✅
