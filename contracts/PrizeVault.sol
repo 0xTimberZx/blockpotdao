@@ -109,6 +109,14 @@ contract PrizeVault {
         emit Funded(msg.sender, msg.value);
     }
 
+    // Anyone can add to prize balance
+    // Used by FaucetVault 50/50 split
+    function addToPrize() external payable {
+        require(msg.value > 0, "No ETH sent");
+        prizeBalance += msg.value;
+        emit Funded(msg.sender, msg.value);
+    }
+
     // Safety receive — logs but does not
     // add to prizeBalance to keep accounting clean
     receive() external payable {
