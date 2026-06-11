@@ -6,6 +6,7 @@ pragma solidity 0.8.20;
 //  Arbitrum Sepolia Testnet
 //  Compiler : solc 0.8.20
 //  Optimizer: OFF
+//  Version  : 2 — Emissions write to state
 // ─────────────────────────────────────────────
 
 interface ITreasury {
@@ -15,9 +16,7 @@ interface ITreasury {
     ) external;
 
     function calculateEmissionRate(
-        uint256 prizePoolWei,
-        uint256 timerSeconds,
-        uint256 maxTimerSeconds
+        uint256 prizePoolWei
     ) external pure returns (uint256);
 }
 
@@ -32,16 +31,23 @@ interface IDAPPToken {
     ) external view returns (uint256);
 }
 
+interface ITimerGame {
+    function getCurrentTimer()
+        external view returns (uint256);
+    function isGameActive()
+        external view returns (bool);
+}
+
 contract StakingPool {
 
     // ── CONSTANTS ─────────────────────────────
     uint256 public constant TIER2_THRESHOLD  = 15 days;
     uint256 public constant TIER3_THRESHOLD  = 30 days;
-    uint256 public constant TIER2_MULTIPLIER = 125; // 1.25x = 125%
-    uint256 public constant TIER3_MULTIPLIER = 135; // 1.35x = 135%
-    uint256 public constant BASE_MULTIPLIER  = 100; // 1.00x = 100%
+    uint256 public constant TIER2_MULTIPLIER = 125;
+    uint256 public constant TIER3_MULTIPLIER = 135;
+    uint256 public constant BASE_MULTIPLIER  = 100;
     uint256 public constant MAX_TIMER        = 654 hours;
-    uint256 public constant MIN_CLAIM        = 1e16; // 0.01 DAPP
+    uint256 public constant MIN_CLAIM        = 1e16;
 
     // ── STATE ─────────────────────────────────
     address public owner;
@@ -52,30 +58,31 @@ contract StakingPool {
 
     uint256 public totalPooledETH;
     uint256 public activeStakeCount;
-    uint256 public totalStakeCount; // ever created, for ID gen
+    uint256 public totalStakeCount;
     uint256 public lastEmissionTime;
 
     bool public stakingPaused;
     bool public emissionsPaused;
     bool public globalPaused;
-
 // ── STRUCT ────────────────────────────────
     struct Stake {
-        uint256 index;          // position in wallet's array
-        uint256 amount;         // ETH deposited in wei
-        uint256 startTime;      // block.timestamp at creation
-        uint256 tierStartTime;  // when current tier began
-        uint256 pendingRewards; // accumulated DAPP not yet claimed
-        uint256 lastClaimTime;  // last time rewards were harvested
-        uint8   tier;           // 1, 2, or 3
+        uint256 index;
+        uint256 amount;
+        uint256 startTime;
+        uint256 tierStartTime;
+        uint256 pendingRewards;
+        uint256 lastClaimTime;
+        uint8   tier;
         bool    active;
     }
 
-    // wallet → array of all their stakes
     mapping(address => Stake[]) public stakes;
-
-    // wallet → indices of currently active stakes
     mapping(address => uint256[]) public activeIndices;
+
+    // All wallets that have ever staked
+    // Used for emission distribution
+    address[] public stakerList;
+    mapping(address => bool) public isStaker;
 
     // ── EVENTS ────────────────────────────────
     event Staked(
@@ -107,7 +114,7 @@ contract StakingPool {
         uint256 timestamp
     );
 
-    event EmissionsDistributed(
+    event EmissionsAccrued(
         uint256 totalAmount,
         uint256 timestamp
     );
@@ -120,14 +127,6 @@ contract StakingPool {
     // ── MODIFIERS ─────────────────────────────
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
-        _;
-    }
-
-    modifier onlyTimerGame() {
-        require(
-            msg.sender == timerGame,
-            "Not timer game"
-        );
         _;
     }
 
@@ -147,13 +146,12 @@ contract StakingPool {
         address _prizeVault,
         address _dappToken
     ) {
-        owner      = msg.sender;
-        treasury   = _treasury;
-        prizeVault = _prizeVault;
-        dappToken  = _dappToken;
+        owner            = msg.sender;
+        treasury         = _treasury;
+        prizeVault       = _prizeVault;
+        dappToken        = _dappToken;
         lastEmissionTime = block.timestamp;
     }
-
 // ── STAKING ───────────────────────────────
     function stake()
         external
@@ -163,11 +161,8 @@ contract StakingPool {
     {
         require(msg.value > 0, "No ETH sent");
 
-        // Distribute any pending emissions before
-        // changing pool composition
-        if (activeStakeCount > 0) {
-            _distributeEmissions();
-        }
+        // Accrue emissions before pool changes
+        _accrueEmissions();
 
         uint256 stakeIndex = stakes[msg.sender].length;
 
@@ -183,14 +178,20 @@ contract StakingPool {
         }));
 
         activeIndices[msg.sender].push(stakeIndex);
-        totalPooledETH  += msg.value;
-        totalStakeCount += 1;
+        totalPooledETH   += msg.value;
+        totalStakeCount  += 1;
+        activeStakeCount += 1;
 
-        // First stake ever → signal vault to start growth
-        if (activeStakeCount == 0) {
+        // Register staker for emission tracking
+        if (!isStaker[msg.sender]) {
+            isStaker[msg.sender] = true;
+            stakerList.push(msg.sender);
+        }
+
+        // First stake → signal vault to start growth
+        if (activeStakeCount == 1) {
             IPrizeVault(prizeVault).setGrowthActive(true);
         }
-        activeStakeCount += 1;
 
         emit Staked(
             msg.sender,
@@ -206,22 +207,21 @@ contract StakingPool {
     ) external notPaused {
         require(
             stakeIndex < stakes[msg.sender].length,
-            "Invalid stake index"
+            "Invalid index"
         );
         Stake storage s = stakes[msg.sender][stakeIndex];
-        require(s.active, "Stake not active");
+        require(s.active, "Not active");
 
-        // Distribute emissions before removing
-        // this stake from the pool
-        if (activeStakeCount > 0) {
-            _distributeEmissions();
-        }
+        // Accrue before removing from pool
+        _accrueEmissions();
 
-        // Claim any remaining pending rewards first
-        if (s.pendingRewards >= MIN_CLAIM) {
-            uint256 rewards = s.pendingRewards;
+        // Auto-claim any pending rewards
+        uint256 rewards = s.pendingRewards;
+        if (rewards >= MIN_CLAIM) {
             s.pendingRewards = 0;
-            ITreasury(treasury).distribute(msg.sender, rewards);
+            ITreasury(treasury).distribute(
+                msg.sender, rewards
+            );
             emit RewardsClaimed(
                 msg.sender,
                 stakeIndex,
@@ -233,22 +233,22 @@ contract StakingPool {
         }
 
         uint256 amount = s.amount;
-        s.active  = false;
-        s.amount  = 0;
+        s.active = false;
+        s.amount = 0;
 
         totalPooledETH   -= amount;
         activeStakeCount -= 1;
 
-        // Remove from active indices
         _removeActiveIndex(msg.sender, stakeIndex);
 
-        // Last stake removed → signal vault to stop growth
+        // Last stake removed → stop vault growth
         if (activeStakeCount == 0) {
             IPrizeVault(prizeVault).setGrowthActive(false);
         }
 
-        // Return ETH to staker
-        (bool sent, ) = payable(msg.sender).call{value: amount}("");
+        (bool sent, ) = payable(msg.sender).call{
+            value: amount
+        }("");
         require(sent, "ETH return failed");
 
         emit Unstaked(
@@ -259,7 +259,7 @@ contract StakingPool {
         );
     }
 
-    // ── INTERNAL: remove from activeIndices ───
+    // ── INTERNAL: remove active index ─────────
     function _removeActiveIndex(
         address wallet,
         uint256 stakeIndex
@@ -268,7 +268,6 @@ contract StakingPool {
         uint256 len = active.length;
         for (uint256 i = 0; i < len; i++) {
             if (active[i] == stakeIndex) {
-                // Swap with last and pop
                 active[i] = active[len - 1];
                 active.pop();
                 break;
@@ -282,13 +281,13 @@ contract StakingPool {
     ) external notPaused {
         require(
             stakeIndex < stakes[msg.sender].length,
-            "Invalid stake index"
+            "Invalid index"
         );
         Stake storage s = stakes[msg.sender][stakeIndex];
-        require(s.active, "Stake not active");
+        require(s.active, "Not active");
 
         // Accrue latest emissions first
-        _distributeEmissions();
+        _accrueEmissions();
 
         uint256 rewards = s.pendingRewards;
         require(rewards >= MIN_CLAIM, "Below min claim");
@@ -312,13 +311,13 @@ contract StakingPool {
     ) external notPaused {
         require(
             stakeIndex < stakes[msg.sender].length,
-            "Invalid stake index"
+            "Invalid index"
         );
         Stake storage s = stakes[msg.sender][stakeIndex];
-        require(s.active, "Stake not active");
+        require(s.active, "Not active");
 
-        uint8 oldTier = s.tier;
-        uint256 age   = block.timestamp - s.startTime;
+        uint8 oldTier  = s.tier;
+        uint256 age    = block.timestamp - s.startTime;
 
         if (s.tier == 1) {
             require(
@@ -347,11 +346,10 @@ contract StakingPool {
         );
     }
 
-    // ── INTERNAL: DISTRIBUTE EMISSIONS ────────
-    // Called before any pool-changing action
-    // Calculates each active staker's share and
-    // adds it to their pendingRewards
-    function _distributeEmissions() internal {
+    // ── CORE: ACCRUE EMISSIONS ─────────────────
+    // This is the fixed version — actually writes
+    // earned tokens to each staker's pendingRewards
+    function _accrueEmissions() internal {
         if (emissionsPaused) return;
         if (activeStakeCount == 0) return;
         if (totalPooledETH == 0) return;
@@ -359,52 +357,74 @@ contract StakingPool {
         uint256 elapsed = block.timestamp - lastEmissionTime;
         if (elapsed == 0) return;
 
-        // Get current prize pool size for emission calc
+        // Get current prize pool for emission rate
         uint256 prizePool = IPrizeVault(prizeVault)
             .getPrizeBalance();
+        if (prizePool == 0) return;
 
         // Get emission rate from Treasury
-        // Using MAX_TIMER as placeholder when no timer yet
-        // TimerGame will push real value via getCurrentTimer
+        // Rate = tokens per second based on prize pool
         uint256 rate = ITreasury(treasury)
-            .calculateEmissionRate(
-                prizePool,
-                MAX_TIMER / 2, // default mid-point
-                MAX_TIMER
-            );
+            .calculateEmissionRate(prizePool);
 
         uint256 totalEmission = rate * elapsed;
         if (totalEmission == 0) return;
 
-        // Calculate sum of all adjusted shares
-        // to normalize properly
-        uint256 totalAdjusted = _getTotalAdjustedShares();
-        if (totalAdjusted == 0) return;
+        // Calculate weighted total for share math
+        // Accounts for tier multipliers
+        uint256 weightedTotal = _getWeightedTotal();
+        if (weightedTotal == 0) return;
 
-        // We cannot iterate all wallets on-chain
-        // so emissions are stored as a global pool
-        // and distributed proportionally on claim
-        // This is handled via pendingRewards below
-        // NOTE: for testnet with known stakers this
-        // simple approach works cleanly
+        // Distribute proportional share to every
+        // active stake across all registered stakers
+        uint256 distributed = 0;
+        uint256 stakerCount  = stakerList.length;
+
+        for (uint256 i = 0; i < stakerCount; i++) {
+            address wallet = stakerList[i];
+            uint256[] memory active = activeIndices[wallet];
+            uint256 activeLen = active.length;
+
+            for (uint256 j = 0; j < activeLen; j++) {
+                Stake storage s = stakes[wallet][active[j]];
+                if (!s.active || s.amount == 0) continue;
+
+                uint256 multiplier = _getTierMultiplier(s.tier);
+                uint256 weighted   = s.amount * multiplier / 100;
+
+                // Share = weighted / weightedTotal
+                // Reward = totalEmission * share
+                uint256 reward =
+                    totalEmission * weighted / weightedTotal;
+
+                s.pendingRewards += reward;
+                distributed      += reward;
+            }
+        }
 
         lastEmissionTime = block.timestamp;
 
-        emit EmissionsDistributed(totalEmission, block.timestamp);
+        emit EmissionsAccrued(distributed, block.timestamp);
     }
 
-    // ── INTERNAL: sum of all adjusted shares ──
-    function _getTotalAdjustedShares()
+    // ── INTERNAL: weighted pool total ─────────
+    function _getWeightedTotal()
         internal
         view
         returns (uint256 total)
     {
-        // For on-chain math we use totalPooledETH
-        // as the base — tier multipliers scale
-        // individual shares up proportionally
-        // This function returns a weighted total
-        // used as the denominator
-        return totalPooledETH > 0 ? totalPooledETH : 1;
+        uint256 stakerCount = stakerList.length;
+        for (uint256 i = 0; i < stakerCount; i++) {
+            address wallet = stakerList[i];
+            uint256[] memory active = activeIndices[wallet];
+            for (uint256 j = 0; j < active.length; j++) {
+                Stake storage s = stakes[wallet][active[j]];
+                if (!s.active || s.amount == 0) continue;
+                uint256 multiplier = _getTierMultiplier(s.tier);
+                total += s.amount * multiplier / 100;
+            }
+        }
+        return total;
     }
 
     // ── INTERNAL: tier multiplier ─────────────
@@ -416,7 +436,13 @@ contract StakingPool {
         return BASE_MULTIPLIER;
     }
 
-// ── VIEWS: USER ───────────────────────────
+    // ── PUBLIC: manual accrual trigger ────────
+    // Anyone can call to force emission snapshot
+    function accrueEmissions() external notPaused {
+        _accrueEmissions();
+    }
+
+// ── VIEWS ─────────────────────────────────
     function getStakeCount(
         address wallet
     ) external view returns (uint256) {
@@ -436,11 +462,6 @@ contract StakingPool {
         return activeIndices[wallet];
     }
 
-    // Returns the best stake for a wallet
-    // using the ranking cascade:
-    // 1. Highest tier
-    // 2. Longest duration in that tier
-    // 3. Largest stake size
     function getBestStake(
         address wallet
     ) external view returns (
@@ -455,11 +476,12 @@ contract StakingPool {
             return (0, 0, 0, 0, false);
         }
 
-        uint256 bestIndex    = active[0];
-        Stake memory best    = stakes[wallet][bestIndex];
+        uint256 bestIndex = active[0];
+        Stake memory best = stakes[wallet][bestIndex];
 
         for (uint256 i = 1; i < active.length; i++) {
-            Stake memory candidate = stakes[wallet][active[i]];
+            Stake memory candidate =
+                stakes[wallet][active[i]];
             if (_isBetter(candidate, best)) {
                 best      = candidate;
                 bestIndex = active[i];
@@ -475,7 +497,6 @@ contract StakingPool {
         );
     }
 
-    // Compare two stakes by ranking cascade
     function _isBetter(
         Stake memory a,
         Stake memory b
@@ -487,7 +508,6 @@ contract StakingPool {
         return a.amount > b.amount;
     }
 
-    // Returns emission share for a single stake
     function getEmissionShare(
         address wallet,
         uint256 stakeIndex
@@ -498,6 +518,27 @@ contract StakingPool {
         uint256 multiplier = _getTierMultiplier(s.tier);
         uint256 adjusted   = s.amount * multiplier / 100;
         return adjusted * 10000 / totalPooledETH;
+    }
+
+    function getPendingRewards(
+        address wallet,
+        uint256 stakeIndex
+    ) external view returns (uint256) {
+        return stakes[wallet][stakeIndex].pendingRewards;
+    }
+
+    function getPoolInfo() external view returns (
+        uint256 pooledETH,
+        uint256 stakeCount,
+        uint256 totalEver,
+        bool    paused
+    ) {
+        return (
+            totalPooledETH,
+            activeStakeCount,
+            totalStakeCount,
+            globalPaused
+        );
     }
 
     // ── ADMIN ─────────────────────────────────
@@ -546,23 +587,6 @@ contract StakingPool {
         owner = newOwner;
     }
 
-    // ── VIEWS: POOL ───────────────────────────
-    function getPoolInfo() external view returns (
-        uint256 pooledETH,
-        uint256 stakeCount,
-        uint256 totalEverCreated,
-        bool    paused
-    ) {
-        return (
-            totalPooledETH,
-            activeStakeCount,
-            totalStakeCount,
-            globalPaused
-        );
-    }
-
-    // Required to receive ETH back from
-    // emergency scenarios
     receive() external payable {}
 
-} // ── END StakingPool ──────────────────────────
+} // ── END StakingPool v2 ────────────────────────
