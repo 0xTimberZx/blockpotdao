@@ -60,8 +60,8 @@ const ABI_FAUCET = [
 ];
 
 const ABI_TREASURY = [
-  "function calculateEmissionRate(uint256) view returns (uint256)",
-  "function previewEmissionRate(uint256) view returns (uint256,uint256,uint256)",
+  "function calculateEmissionRate(uint256 prizePoolWei) view returns (uint256 tokensPerSecond)",
+  "function previewEmissionRate(uint256 prizePoolWei) view returns (uint256 tokensPerSecond, uint256 tokensPerHour, uint256 totalBudget)",
   "function getTreasuryBalance() view returns (uint256)",
 ];
 // ── HOOKS ──────────────────────────────────
@@ -495,10 +495,9 @@ function MyStakesTab({ wallet }) {
 
       // Emission rate preview
 // previewEmissionRate returns (tokensPerSecond, tokensPerHour, totalBudget)
-const emissionResult = await treas.previewEmissionRate(prize);
-const tokensPerHour = emissionResult[1];
+const result = await treas.previewEmissionRate(prize);
 setEmission(
-  parseFloat(ethers.utils.formatEther(tokensPerHour)).toFixed(4)
+  parseFloat(ethers.utils.formatEther(result.tokensPerHour)).toFixed(4)
 );
 
       // Load each active stake
