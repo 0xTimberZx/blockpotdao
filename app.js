@@ -494,11 +494,12 @@ function MyStakesTab({ wallet }) {
       );
 
       // Emission rate preview
-      const [ratePerSec] = await treas.previewEmissionRate(prize);
-      const perHour = ratePerSec.mul(3600);
-      setEmission(
-        parseFloat(ethers.utils.formatEther(perHour)).toFixed(4)
-      );
+// previewEmissionRate returns (tokensPerSecond, tokensPerHour, totalBudget)
+const emissionResult = await treas.previewEmissionRate(prize);
+const tokensPerHour = emissionResult[1];
+setEmission(
+  parseFloat(ethers.utils.formatEther(tokensPerHour)).toFixed(4)
+);
 
       // Load each active stake
       const loaded = [];
