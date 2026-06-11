@@ -12,7 +12,7 @@ Optimizer: OFF
 | DAPPToken   | 0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04 | ✅ Sourcify | https://repo.sourcify.dev/421614/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04 |
 | Treasury    | 0x21c407DD5e8704B314668E7e31a26B82F9447226 | ✅ Sourcify | https://repo.sourcify.dev/421614/0x21c407DD5e8704B314668E7e31a26B82F9447226 |
 | PrizeVault  | 0x88008bd915B1E00066fcF0c1aD638D70f1BB7182 | ✅ Sourcify | https://repo.sourcify.dev/421614/0x88008bd915B1E00066fcF0c1aD638D70f1BB7182 |
-| StakingPool | 0x2a3517aC88C78FAbEC3a918e509dd77156413669 | ✅ Sourcify | https://repo.sourcify.dev/421614/0x2a3517aC88C78FAbEC3a918e509dd77156413669 |
+| StakingPool | 0x1F11922Cc3e12b0851E2F48eAff888036EDCd924 | ✅ Sourcify | https://repo.sourcify.dev/421614/0x1F11922Cc3e12b0851E2F48eAff888036EDCd924 |
 | TimerGame   | 0xB1d11f509DaB1B8838f2d0B61eF2c6C82551678f | ✅ Sourcify | https://repo.sourcify.dev/421614/0xB1d11f509DaB1B8838f2d0B61eF2c6C82551678f |
 
 ## Deprecated
