@@ -542,6 +542,13 @@ contract StakingPool {
     }
 
     // ── ADMIN ─────────────────────────────────
+    function setPrizeVault(
+        address _prizeVault
+    ) external onlyOwner {
+        require(_prizeVault != address(0), "Zero address");
+        prizeVault = _prizeVault;
+    }
+
     function setTimerGame(
         address _timerGame
     ) external onlyOwner {
