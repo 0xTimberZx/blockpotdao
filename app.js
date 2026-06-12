@@ -562,7 +562,11 @@ for (let i = 0; i < indices.length; i++) {
     tier,
     active: s.active,
   });
-      } catch (e) {
+}
+
+setStakes(loaded);
+
+    } catch (e) {
       console.warn("Stakes load error:", e.message);
     } finally {
       setLoading(false);
