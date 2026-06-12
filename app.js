@@ -514,56 +514,55 @@ setEmission(
 
       // Load each active stake
       const loaded = [];
-      // Inside the loop where you build `loaded` array,
-// add an estimated rate per stake based on its
-// weighted share of the current total emission rate
 
-const EMISSION_WINDOW = 2354400;
-const TOKENS_PER_ETH  = 1000;
-     
-// Get prize pool once before the loop
-const prizeBal = prize; // already fetched above
+const totalRatePerSec =
+  prize.mul(1000).div(2354400);
 
-// Total emission per second (sacred rule)
-const totalRatePerSec = prizeBal.mul(TOKENS_PER_ETH).div(EMISSION_WINDOW);
+const totalPooled =
+  await pool.totalPooledETH();
 
-// Need total weighted shares across the pool
-const totalPooled = await pool.totalPooledETH();
-     
-      for (let i = 0; i < indices.length; i++) {
-        const idx = indices[i].toNumber();
-        const s   = await pool.getStake(address, idx);
-       const tierMult = s.tier === 3 ? 135 : s.tier === 2 ? 125 : 100;
-const weighted = s.amount.mul(tierMult).div(100);
+for (let i = 0; i < indices.length; i++) {
 
-// Avoid divide by zero
-let stakeRatePerSec = ethers.BigNumber.from(0);
-if (!totalPooled.isZero()) {
-  stakeRatePerSec = totalRatePerSec.mul(weighted).div(totalPooled);
-}
+  const idx = indices[i].toNumber();
+  const s = await pool.getStake(address, idx);
 
-loaded.push({
-  index:       idx,
-  amount:      ethers.utils.formatEther(s.amount),
-  startTime:   s.startTime.toNumber(),
-  tierStart:   s.tierStartTime.toNumber(),
-  pending:     ethers.utils.formatEther(s.pendingRewards),
-  ratePerSec:  parseFloat(ethers.utils.formatEther(stakeRatePerSec)),
-  tier:        s.tier,
-  active:      s.active,
-});
-        loaded.push({
-          index:       idx,
-          amount:      ethers.utils.formatEther(s.amount),
-          startTime:   s.startTime.toNumber(),
-          tierStart:   s.tierStartTime.toNumber(),
-          pending:     ethers.utils.formatEther(s.pendingRewards),
-          tier:        s.tier,
-          active:      s.active,
-        });
-      }
-      setStakes(loaded);
-    } catch (e) {
+  const tier = Number(s.tier);
+
+  const tierMult =
+    tier === 3 ? 135 :
+    tier === 2 ? 125 :
+    100;
+
+  const weighted =
+    s.amount.mul(tierMult).div(100);
+
+  let stakeRatePerSec =
+    ethers.BigNumber.from(0);
+
+  if (!totalPooled.isZero()) {
+    stakeRatePerSec =
+      totalRatePerSec
+        .mul(weighted)
+        .div(totalPooled);
+  }
+
+  loaded.push({
+    index: idx,
+    amount: ethers.utils.formatEther(s.amount),
+    startTime: s.startTime.toNumber(),
+    tierStart: s.tierStartTime.toNumber(),
+    pending: ethers.utils.formatEther(
+      s.pendingRewards
+    ),
+    ratePerSec: Number(
+      ethers.utils.formatEther(
+        stakeRatePerSec
+      )
+    ),
+    tier,
+    active: s.active,
+  });
+      } catch (e) {
       console.warn("Stakes load error:", e.message);
     } finally {
       setLoading(false);
