@@ -1,4 +1,4 @@
-# BlockpotDAO — Contract Registry v2
+# BlockpotDAO (TimerGame) — Contract Registry v2
 
 ## Active Contracts
 | Contract        | Address                                    | Verified    |
