@@ -65,6 +65,17 @@ const ABI_TREASURY = [
   "function previewEmissionRate(uint256 prizePoolWei) view returns (uint256 tokensPerSecond, uint256 tokensPerHour, uint256 totalBudget)",
   "function getTreasuryBalance() view returns (uint256)",
 ];
+
+// Wraps any promise with a timeout so stale
+// providers fail fast instead of hanging forever
+function withTimeout(promise, ms = 8000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("RPC timeout")), ms)
+    ),
+  ]);
+}
 // ── HOOKS ──────────────────────────────────
 const { useState, useEffect, useRef, useCallback } = React;
 
@@ -157,24 +168,33 @@ function useWallet() {
     clearStatus();
   }
 
-  // Re-init on account change — critical multi-wallet fix
-  useEffect(() => {
-    if (!window.ethereum) return;
-    const handler = async () => {
-      const _provider = new ethers.providers.Web3Provider(window.ethereum);
-      const _signer   = _provider.getSigner();
-      const _address  = await _signer.getAddress();
-      const _bal      = await _provider.getBalance(_address);
-      setProvider(_provider);
-      setSigner(_signer);
-      setAddress(_address);
-      setEthBalance(
-        parseFloat(ethers.utils.formatEther(_bal)).toFixed(4)
-      );
-    };
-    window.ethereum.on("accountsChanged", handler);
-    return () => window.ethereum.removeListener("accountsChanged", handler);
-  }, []);
+  // Re-init provider when app comes back to foreground
+// Mobile wallets often drop the connection when
+// the browser is backgrounded for a few minutes
+useEffect(() => {
+  if (!window.ethereum) return;
+
+  const handleVisibility = async () => {
+    if (document.visibilityState === "visible" && address) {
+      try {
+        const _provider = new ethers.providers.Web3Provider(window.ethereum);
+        const _signer   = _provider.getSigner();
+        const _bal      = await _provider.getBalance(address);
+        setProvider(_provider);
+        setSigner(_signer);
+        setEthBalance(
+          parseFloat(ethers.utils.formatEther(_bal)).toFixed(4)
+        );
+      } catch (e) {
+        console.warn("Provider refresh failed:", e.message);
+      }
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibility);
+  return () =>
+    document.removeEventListener("visibilitychange", handleVisibility);
+}, [address]);
 
   return {
     provider, signer, address, ethBalance,
@@ -872,16 +892,21 @@ function LeaderboardTab({ wallet }) {
       const rows  = [];
 
       for (let i = 0; i < total; i++) {
-        const wallet = await timer.registeredWallets(i);
-        const [, tier, duration, amount, found] =
-          await pool.getBestStake(wallet);
-        if (!found || amount.eq(0)) continue;
-        rows.push({
-          wallet,
-          tier,
-          duration: duration.toNumber(),
-          amount:   ethers.utils.formatEther(amount),
-        });
+  try {
+    const wallet = await withTimeout(timer.registeredWallets(i));
+    const [, tier, duration, amount, found] =
+      await withTimeout(pool.getBestStake(wallet));
+    if (!found || amount.eq(0)) continue;
+    rows.push({
+      wallet,
+      tier,
+      duration: duration.toNumber(),
+      amount:   ethers.utils.formatEther(amount),
+    });
+  } catch (e) {
+    console.warn("Leaderboard entry failed, skipping:", e.message);
+    continue;
+  }
       }
 
       // Sort by ranking cascade
