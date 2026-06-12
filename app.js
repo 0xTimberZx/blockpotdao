@@ -537,6 +537,22 @@ setEmission(
 
   useEffect(() => { loadStakes(); }, [address, provider]);
 
+  // Inside the loop where you build `loaded` array,
+// add an estimated rate per stake based on its
+// weighted share of the current total emission rate
+
+const EMISSION_WINDOW = 2354400;
+const TOKENS_PER_ETH  = 1000;
+
+// Get prize pool once before the loop
+const prizeBal = prize; // already fetched above
+
+// Total emission per second (sacred rule)
+const totalRatePerSec = prizeBal.mul(TOKENS_PER_ETH).div(EMISSION_WINDOW);
+
+// Need total weighted shares across the pool
+const totalPooled = await pool.totalPooledETH();
+
   async function handleStake() {
     if (!signer || !ethInput) return;
     try {
