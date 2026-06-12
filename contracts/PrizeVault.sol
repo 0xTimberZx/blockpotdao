@@ -120,6 +120,7 @@ contract PrizeVault {
     // Safety receive — logs but does not
     // add to prizeBalance to keep accounting clean
     receive() external payable {
+        prizeBalance += msg.value;
         emit Funded(msg.sender, msg.value);
     }
 
