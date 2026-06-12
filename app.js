@@ -1,11 +1,11 @@
  // ── CONTRACTS ─────────────────────────────
 const ADDRESSES = {
-  dappToken:   "0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04", //V2
-  treasury:    "0x9935aea651d21Af9C69fE6C650cD7C272e49e270", //V3
-  prizeVault:  "0x88008bd915B1E00066fcF0c1aD638D70f1BB7182", //V2
-  stakingPool: "0x1F11922Cc3e12b0851E2F48eAff888036EDCd924", //V2
-  timerGame:   "0xF049f986f5b9eB9e8dc5AA5eFa01613311D87ab4", //V2
-  faucet:      "0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA", //V2
+  dappToken:   "0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04",
+  treasury:    "0x9935aea651d21Af9C69fE6C650cD7C272e49e270",
+  prizeVault:  "0x59B2971AD75B8cc361656515B04aBed591Fe99Ae",
+  stakingPool: "0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C",
+  timerGame:   "0x238D6aC182E2C8b12209BA0DfcCdc91725ed496F",
+  faucet:      "0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA",
 };
 
 const CHAIN_ID = "0x66eee"; // Arbitrum Sepolia
