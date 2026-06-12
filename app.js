@@ -298,13 +298,16 @@ function ArenaTab({ wallet, timer }) {
       const staking  = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, provider);
       const timerC   = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, provider);
 
-      const [prize, pooled, count, spender] = await Promise.all([
+      const [prize, pooled, count, spender] = await withTimeout(
+  Promise.all([
         vault.getPrizeBalance(),
         staking.totalPooledETH(),
         staking.activeStakeCount(),
         timerC.lastSpender(),
-      ]);
-
+      ])
+     );
+    
+     
       setPrizeEth(
         parseFloat(ethers.utils.formatEther(prize)).toFixed(4)
       );
@@ -504,12 +507,14 @@ function MyStakesTab({ wallet }) {
       const vault = new ethers.Contract(ADDRESSES.prizeVault, ABI_VAULT, provider);
       const treas = new ethers.Contract(ADDRESSES.treasury, ABI_TREASURY, provider);
 
-      const [indices, bal, prize] = await Promise.all([
+      const [indices, bal, prize] = await withTimeout(
+  Promise.all([
         pool.getActiveIndices(address),
         token.balanceOf(address),
         vault.getPrizeBalance(),
-      ]);
-
+      ])
+     );
+     
       setDappBal(
         parseFloat(ethers.utils.formatEther(bal)).toFixed(2)
       );
