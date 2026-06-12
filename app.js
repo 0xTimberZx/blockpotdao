@@ -37,6 +37,7 @@ const ABI_STAKING = [
   "function getEmissionShare(address,uint256) view returns (uint256)",
   "function totalPooledETH() view returns (uint256)",
   "function activeStakeCount() view returns (uint256)",
+  "function lastEmissionTime() view returns (uint256)",
 ];
 
 const ABI_TIMER = [
@@ -521,6 +522,12 @@ const totalRatePerSec =
 const totalPooled =
   await pool.totalPooledETH();
 
+const lastEmission =
+  (await pool.lastEmissionTime()).toNumber();
+
+const nowSec = Math.floor(Date.now() / 1000);
+const gapSeconds = Math.max(0, nowSec - lastEmission);
+
 for (let i = 0; i < indices.length; i++) {
 
   const idx = indices[i].toNumber();
@@ -546,19 +553,25 @@ for (let i = 0; i < indices.length; i++) {
         .div(totalPooled);
   }
 
+  const onChainPending = parseFloat(
+    ethers.utils.formatEther(s.pendingRewards)
+  );
+  const stakeRate = Number(
+    ethers.utils.formatEther(stakeRatePerSec)
+  );
+
+  // Add virtual accrual for time since
+  // last on-chain emission snapshot
+  const virtualPending =
+    onChainPending + (stakeRate * gapSeconds);
+
   loaded.push({
     index: idx,
     amount: ethers.utils.formatEther(s.amount),
     startTime: s.startTime.toNumber(),
     tierStart: s.tierStartTime.toNumber(),
-    pending: ethers.utils.formatEther(
-      s.pendingRewards
-    ),
-    ratePerSec: Number(
-      ethers.utils.formatEther(
-        stakeRatePerSec
-      )
-    ),
+    pending: virtualPending.toString(),
+    ratePerSec: stakeRate,
     tier,
     active: s.active,
   });
