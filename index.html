@@ -12,6 +12,23 @@
 <body>
   <div id="root"></div>
 
+  <!-- DebugHub SDK -->
+  <script>window.DEBUGHUB_CONFIG = { appName: "BlockpotDAO" };</script>
+  <script src="https://0xtimberzx.github.io/MyDapp/debughub/sdk/debugger.js"></script>
+  <script>
+    if (!window.DebugHub) {
+      window.DebugHub = {
+        startSession: function () {},
+        endSession: function () {},
+        logCheckpoint: function () {},
+        logError: function () {},
+        logPerf: function () {},
+        logSecurity: function () {}
+      };
+      console.warn("⚠ DebugHub SDK did not load — running without telemetry.");
+    }
+  </script>
+
   <!-- Load libraries first, in order -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>

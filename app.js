@@ -119,6 +119,7 @@ function useWallet() {
           method: "wallet_switchEthereumChain",
           params: [{ chainId: CHAIN_ID }],
         });
+        DebugHub.logSecurity("Chain Check", "pass");
       } catch (switchErr) {
         if (switchErr.code === 4902) {
           await window.ethereum.request({
@@ -131,7 +132,10 @@ function useWallet() {
               blockExplorerUrls: ["https://sepolia.arbiscan.io"],
             }],
           });
+          DebugHub.logSecurity("Chain Check", "pass");
         } else {
+          DebugHub.logSecurity("Chain Check", "fail");
+          DebugHub.logError("switchChain", switchErr);
           showStatus("Failed to switch network.", "error");
           setConnecting(false);
           return;
@@ -151,9 +155,13 @@ function useWallet() {
         parseFloat(ethers.utils.formatEther(_bal)).toFixed(4)
       );
 
+      DebugHub.startSession();
+      DebugHub.logCheckpoint("Wallet Connected", "pass");
+
       showStatus("Wallet connected.", "success");
       setTimeout(clearStatus, 3000);
     } catch (err) {
+      DebugHub.logError("connect", err);
       showStatus(err.message || "Connection failed.", "error");
     } finally {
       setConnecting(false);
@@ -161,6 +169,7 @@ function useWallet() {
   }
 
   function disconnect() {
+    DebugHub.endSession();
     setProvider(null);
     setSigner(null);
     setAddress(null);
@@ -343,11 +352,15 @@ function ArenaTab({ wallet, timer }) {
       const token = new ethers.Contract(ADDRESSES.dappToken, ABI_TOKEN, signer);
       const max   = ethers.constants.MaxUint256;
       const tx    = await token.approve(ADDRESSES.timerGame, max);
+      DebugHub.logCheckpoint("Approve Submitted", "pass");
       showStatus("Approval pending...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Approve Confirmed", "pass");
       showStatus("DAPP approved. Ready to push.", "success");
       await loadArena();
     } catch (e) {
+      DebugHub.logError("approve", e);
+      DebugHub.logCheckpoint("Approve Confirmed", "fail");
       showStatus(e.message || "Approval failed.", "error");
     }
   }
@@ -359,19 +372,25 @@ function ArenaTab({ wallet, timer }) {
       showStatus("Pushing timer — confirm in wallet...", "pending");
       const game     = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, signer);
       const feeData  = await signer.provider.getFeeData();
+      const __gasStart = Date.now();
       const gasEst   = await game.estimateGas.pushTimer();
+      DebugHub.logPerf("gasEstimate_pushTimer", Date.now() - __gasStart);
       const gasLimit = gasEst.mul(150).div(100);
       const tx = await game.pushTimer({
         gasLimit,
-        maxFeePerGas:         feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
       });
+      DebugHub.logCheckpoint("Push Timer Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Push Timer Confirmed", "pass");
       showStatus("Timer pushed -5 minutes!", "success");
       timer.syncChain();
       await loadArena();
     } catch (e) {
+      DebugHub.logError("pushTimer", e);
+      DebugHub.logCheckpoint("Push Timer Confirmed", "fail");
       showStatus(e.reason || e.message || "Push failed.", "error");
     } finally {
       setPushing(false);
@@ -634,19 +653,25 @@ useEffect(() => {
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const value   = ethers.utils.parseEther(ethInput);
       const feeData = await signer.provider.getFeeData();
+      const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.stake({ value });
+      DebugHub.logPerf("gasEstimate_stake", Date.now() - __gasStart);
       const tx = await pool.stake({
         value,
         gasLimit:             gasEst.mul(150).div(100),
-        maxFeePerGas:         feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
       });
+      DebugHub.logCheckpoint("Stake Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Stake Confirmed", "pass");
       showStatus("Stake created!", "success");
       setEthInput("");
       await loadStakes();
     } catch (e) {
+      DebugHub.logError("stake", e);
+      DebugHub.logCheckpoint("Stake Confirmed", "fail");
       showStatus(e.reason || e.message || "Stake failed.", "error");
     } finally {
       setStaking(false);
@@ -659,17 +684,23 @@ useEffect(() => {
       showStatus("Unstaking — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.unstake(idx);
+      DebugHub.logPerf("gasEstimate_unstake", Date.now() - __gasStart);
       const tx = await pool.unstake(idx, {
         gasLimit:             gasEst.mul(150).div(100),
-        maxFeePerGas:         feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
       });
+      DebugHub.logCheckpoint("Unstake Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Unstake Confirmed", "pass");
       showStatus("Unstaked successfully.", "success");
       await loadStakes();
     } catch (e) {
+      DebugHub.logError("unstake", e);
+      DebugHub.logCheckpoint("Unstake Confirmed", "fail");
       showStatus(e.reason || e.message || "Unstake failed.", "error");
     }
   }
@@ -680,17 +711,23 @@ useEffect(() => {
       showStatus("Claiming rewards — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.claimRewards(idx);
+      DebugHub.logPerf("gasEstimate_claimRewards", Date.now() - __gasStart);
       const tx = await pool.claimRewards(idx, {
         gasLimit:             gasEst.mul(150).div(100),
-        maxFeePerGas:         feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
       });
+      DebugHub.logCheckpoint("Claim Rewards Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Claim Rewards Confirmed", "pass");
       showStatus("Rewards claimed!", "success");
       await loadStakes();
     } catch (e) {
+      DebugHub.logError("claimRewards", e);
+      DebugHub.logCheckpoint("Claim Rewards Confirmed", "fail");
       showStatus(e.reason || e.message || "Claim failed.", "error");
     }
   }
@@ -701,17 +738,23 @@ useEffect(() => {
       showStatus("Upgrading tier — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.upgradeTier(idx);
+      DebugHub.logPerf("gasEstimate_upgradeTier", Date.now() - __gasStart);
       const tx = await pool.upgradeTier(idx, {
         gasLimit:             gasEst.mul(150).div(100),
-        maxFeePerGas:         feeData.maxFeePerGas,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
       });
+      DebugHub.logCheckpoint("Upgrade Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
+      DebugHub.logCheckpoint("Upgrade Confirmed", "pass");
       showStatus("Tier upgraded!", "success");
       await loadStakes();
     } catch (e) {
+      DebugHub.logError("upgradeTier", e);
+      DebugHub.logCheckpoint("Upgrade Confirmed", "fail");
       showStatus(e.reason || e.message || "Upgrade failed.", "error");
     }
   }
