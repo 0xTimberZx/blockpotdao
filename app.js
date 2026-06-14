@@ -376,6 +376,7 @@ function ArenaTab({ wallet, timer }) {
       const gasEst   = await game.estimateGas.pushTimer();
       DebugHub.logPerf("gasEstimate_pushTimer", Date.now() - __gasStart);
       const gasLimit = gasEst.mul(150).div(100);
+      DebugHub.logCheckpoint("Push Timer Requested", "pass");
       const tx = await game.pushTimer({
         gasLimit,
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
@@ -656,6 +657,7 @@ useEffect(() => {
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.stake({ value });
       DebugHub.logPerf("gasEstimate_stake", Date.now() - __gasStart);
+      DebugHub.logCheckpoint("Stake Requested", "pass");
       const tx = await pool.stake({
         value,
         gasLimit:             gasEst.mul(150).div(100),
@@ -687,6 +689,7 @@ useEffect(() => {
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.unstake(idx);
       DebugHub.logPerf("gasEstimate_unstake", Date.now() - __gasStart);
+      DebugHub.logCheckpoint("Unstake Requested", "pass");
       const tx = await pool.unstake(idx, {
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
@@ -714,6 +717,7 @@ useEffect(() => {
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.claimRewards(idx);
       DebugHub.logPerf("gasEstimate_claimRewards", Date.now() - __gasStart);
+      DebugHub.logCheckpoint("Claim Rewards Requested", "pass");
       const tx = await pool.claimRewards(idx, {
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
@@ -741,6 +745,7 @@ useEffect(() => {
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.upgradeTier(idx);
       DebugHub.logPerf("gasEstimate_upgradeTier", Date.now() - __gasStart);
+      DebugHub.logCheckpoint("Upgrade Requested", "pass");
       const tx = await pool.upgradeTier(idx, {
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
