@@ -351,7 +351,9 @@ function ArenaTab({ wallet, timer }) {
       showStatus("Approving DAPP for timer...", "pending");
       const token = new ethers.Contract(ADDRESSES.dappToken, ABI_TOKEN, signer);
       const max   = ethers.constants.MaxUint256;
-      const tx    = await token.approve(ADDRESSES.timerGame, max);
+      const nonce = await signer.provider.getTransactionCount(address, "pending");
+      DebugHub.logCheckpoint("Approve Requested", "pass");
+      const tx    = await token.approve(ADDRESSES.timerGame, max, { nonce: nonce });
       DebugHub.logCheckpoint("Approve Submitted", "pass");
       showStatus("Approval pending...", "pending");
       await tx.wait();
@@ -372,12 +374,14 @@ function ArenaTab({ wallet, timer }) {
       showStatus("Pushing timer — confirm in wallet...", "pending");
       const game     = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, signer);
       const feeData  = await signer.provider.getFeeData();
+      const nonce    = await signer.provider.getTransactionCount(address, "pending");
       const __gasStart = Date.now();
       const gasEst   = await game.estimateGas.pushTimer();
       DebugHub.logPerf("gasEstimate_pushTimer", Date.now() - __gasStart);
       const gasLimit = gasEst.mul(150).div(100);
       DebugHub.logCheckpoint("Push Timer Requested", "pass");
       const tx = await game.pushTimer({
+        nonce,
         gasLimit,
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
@@ -654,12 +658,14 @@ useEffect(() => {
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const value   = ethers.utils.parseEther(ethInput);
       const feeData = await signer.provider.getFeeData();
+      const nonce   = await signer.provider.getTransactionCount(address, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.stake({ value });
       DebugHub.logPerf("gasEstimate_stake", Date.now() - __gasStart);
       DebugHub.logCheckpoint("Stake Requested", "pass");
       const tx = await pool.stake({
         value,
+        nonce:                nonce,
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
@@ -686,11 +692,13 @@ useEffect(() => {
       showStatus("Unstaking — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const nonce   = await signer.provider.getTransactionCount(address, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.unstake(idx);
       DebugHub.logPerf("gasEstimate_unstake", Date.now() - __gasStart);
       DebugHub.logCheckpoint("Unstake Requested", "pass");
       const tx = await pool.unstake(idx, {
+        nonce:                nonce,
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
@@ -714,11 +722,13 @@ useEffect(() => {
       showStatus("Claiming rewards — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const nonce   = await signer.provider.getTransactionCount(address, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.claimRewards(idx);
       DebugHub.logPerf("gasEstimate_claimRewards", Date.now() - __gasStart);
       DebugHub.logCheckpoint("Claim Rewards Requested", "pass");
       const tx = await pool.claimRewards(idx, {
+        nonce:                nonce,
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
@@ -742,11 +752,13 @@ useEffect(() => {
       showStatus("Upgrading tier — confirm in wallet...", "pending");
       const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
       const feeData = await signer.provider.getFeeData();
+      const nonce   = await signer.provider.getTransactionCount(address, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.upgradeTier(idx);
       DebugHub.logPerf("gasEstimate_upgradeTier", Date.now() - __gasStart);
       DebugHub.logCheckpoint("Upgrade Requested", "pass");
       const tx = await pool.upgradeTier(idx, {
+        nonce:                nonce,
         gasLimit:             gasEst.mul(150).div(100),
         maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
