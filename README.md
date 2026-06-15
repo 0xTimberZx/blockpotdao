@@ -29,8 +29,8 @@
 - [x] setTimerGame() on PrizeVault
 - [x] setTimerGame() on StakingPool
 - [x] FaucetVault v2 deployed + verified
-- [ ] Fund FaucetVault with testnet ETH
-- [ ] startGame() - after frontend tested
+- [x] Fund FaucetVault with testnet ETH
+- [x] startGame() - after frontend tested
 
 ---
 
@@ -111,9 +111,9 @@ device cannot see it.
 ## Standing checklist for any NEW contract-write function
 
 Apply all three before considering a write function "done":
-1. [ ] maxFeePerGas / maxPriorityFeePerGas from getFeeData(), x1.30
-2. [ ] explicit nonce via getTransactionCount(address, "pending")
-3. [ ] "X Requested" -> "X Submitted" -> "X Confirmed" checkpoints,
+1. [x] maxFeePerGas / maxPriorityFeePerGas from getFeeData(), x1.30
+2. [x] explicit nonce via getTransactionCount(address, "pending")
+3. [x] "X Requested" -> "X Submitted" -> "X Confirmed" checkpoints,
        plus logError + "X Confirmed" fail in the catch block
 
 Found and fixed retroactively in (June 2026):
@@ -147,10 +147,10 @@ should stay in sync with the live lookup table.
 ---
 
 ## Open items
-- [ ] Live-test BlockpotDAO stake/unstake/claim/upgrade/push with the
+- [x] Live-test BlockpotDAO stake/unstake/claim/upgrade/push with the
       new nonce + Requested-checkpoint fixes
-- [ ] Consider deleting /debughub-test/ once future SDK changes are
+- [x] Consider deleting /debughub-test/ once future SDK changes are
       verified there (or keep as permanent sandbox)
-- [ ] 0xFaucet post-claim "thank you + random name" - randomness
+- [x] 0xFaucet post-claim "thank you + random name" - randomness
       mechanism still TBD, raise only when a natural implementation
       point comes up
