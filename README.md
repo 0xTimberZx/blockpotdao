@@ -63,12 +63,7 @@ Status: MVP complete and live across all three frontends.
     └── sdk/debugger.js
 ```
 
-## Owner gate
-Hardcoded owner address in gate.js:
-0x42536623b503D4926DfAF6173B0357b7DfD19800
-Frontend-only gate. localStorage values are base64-encoded as a
-casual-snooping deterrent, not real security. Fine for a personal
-debug tool, not for anything guarding funds.
+
 
 ## Per-DApp config (DEBUGHUB_CONFIG.appName)
 | DApp          | appName       | Storage key              |
