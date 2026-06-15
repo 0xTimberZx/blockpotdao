@@ -1,4 +1,4 @@
-# BlockpotDAO (TimerGame) - Contract Registry v2
+ BlockpotDAO (TimerGame) - Contract Registry v2
 
 ## Active Contracts
 | Contract        | Address                                    | Verified    |
@@ -40,9 +40,20 @@ Status: MVP complete and live across all three frontends.
 
 ## Repo layout
 ```
+0xtimberzx.github.io/blockpotdao/
+├── app.js/         BlockpotDao (ethers and abis)
+├── style.css/        
+├── index.html.     BlockpotDAO (vaults + stakes + timer, React) 
+└── contracts/      
+    ├── timergame.sol
+    ├── prizeVault.sol
+    ├── treasury.sol
+    ├── DAppToken.sol
+    └── stakingpool.sol
+
+
 0xtimberzx.github.io/MyDapp/
 ├── faucet/         0xFaucet
-├── blockpot/        BlockpotDAO (stakes + timer, React)
 ├── messageboard/   MessageBoard (HelloWorld/StringCompiler)
 └── debughub/
     ├── index.html
@@ -148,4 +159,3 @@ should stay in sync with the live lookup table.
 - [ ] 0xFaucet post-claim "thank you + random name" - randomness
       mechanism still TBD, raise only when a natural implementation
       point comes up
-
