@@ -326,7 +326,11 @@ function ArenaTab({ wallet, timer }) {
         staking.totalPooledETH(),
         staking.activeStakeCount(),
         timerC.lastSpender(),
-        timerC.pushAmount(),
+        // Older deployments lack pushAmount() —
+        // fall back to 40h instead of failing the load
+        timerC.pushAmount().catch(() =>
+          ethers.BigNumber.from(40 * 3600)
+        ),
       ])
      );
     

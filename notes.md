@@ -7,7 +7,7 @@
 | Treasury v2     | 0x9935aea651d21Af9C69fE6C650cD7C272e49e270 | Sourcify ok |
 | PrizeVault v3   | 0x59B2971AD75B8cc361656515B04aBed591Fe99Ae | Sourcify ok |
 | StakingPool v3  | 0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C | Sourcify ok |
-| TimerGame v4    | 0xc871D31CdFc3d1df80B2a316B99b7fa86ccB4940 | Sourcify ok |
+| TimerGame v4    | 0xc871D31CdFc3d1df80B2a316B99b7fa86ccB4940 | old source — lacks setPushAmount, redeploy pending |
 | FaucetVault v2  | 0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA | Sourcify ok |
 
 ## Deprecated
