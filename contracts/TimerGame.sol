@@ -56,9 +56,11 @@ contract TimerGame {
     // ── CONSTANTS ─────────────────────────────
     uint256 public constant TIMER_START   = 48 hours;
     uint256 public constant TIMER_MAX     = 654 hours;
-    uint256 public constant PUSH_AMOUNT   = 5 minutes;
     uint256 public constant TOKEN_COST    = 1e18; // 1 DAPP
     uint256 public constant LEADERBOARD_WINDOW = 650 hours;
+
+    // Owner-adjustable via setPushAmount
+    uint256 public pushAmount = 40 hours;
 
     // ── STATE ─────────────────────────────────
     address public owner;
@@ -109,6 +111,11 @@ contract TimerGame {
         address indexed first,
         address indexed second,
         uint256 timestamp
+    );
+
+    event PushAmountChanged(
+        uint256 oldAmount,
+        uint256 newAmount
     );
 
     event TimerPausedEvent(bool paused);
@@ -165,7 +172,7 @@ contract TimerGame {
     }
 // ── PUSH TIMER ────────────────────────────
     // Costs exactly 1 DAPP token
-    // Pushes timer DOWN by 5 minutes
+    // Pushes timer DOWN by pushAmount (default 40 hours)
     // Records msg.sender as last spender
     // Auto-registers wallet for leaderboard
     function pushTimer()
@@ -198,8 +205,8 @@ contract TimerGame {
 
         // Update timer state
         // Snapshot current value then subtract push
-        timerValue     = current > PUSH_AMOUNT
-            ? current - PUSH_AMOUNT
+        timerValue     = current > pushAmount
+            ? current - pushAmount
             : 0;
         lastUpdateTime = block.timestamp;
 
@@ -439,6 +446,18 @@ contract TimerGame {
     function resumeAll() external onlyOwner {
         globalPaused = false;
         emit GlobalPausedEvent(false);
+    }
+
+    // Adjust how much each push subtracts
+    // Bounded so the game stays playable and
+    // the change is visible on-chain via event
+    function setPushAmount(
+        uint256 newAmount
+    ) external onlyOwner {
+        require(newAmount >= 1 minutes, "Push too small");
+        require(newAmount <= TIMER_MAX, "Push too large");
+        emit PushAmountChanged(pushAmount, newAmount);
+        pushAmount = newAmount;
     }
 
     // Manual win trigger — owner authorized
