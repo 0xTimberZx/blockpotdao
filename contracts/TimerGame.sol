@@ -56,7 +56,7 @@ contract TimerGame {
     // ── CONSTANTS ─────────────────────────────
     uint256 public constant TIMER_START   = 48 hours;
     uint256 public constant TIMER_MAX     = 654 hours;
-    uint256 public constant PUSH_AMOUNT   = 5 minutes;
+    uint256 public constant PUSH_AMOUNT   = 40 hours;
     uint256 public constant TOKEN_COST    = 1e18; // 1 DAPP
     uint256 public constant LEADERBOARD_WINDOW = 650 hours;
 
@@ -165,7 +165,7 @@ contract TimerGame {
     }
 // ── PUSH TIMER ────────────────────────────
     // Costs exactly 1 DAPP token
-    // Pushes timer DOWN by 5 minutes
+    // Pushes timer DOWN by 40 hours
     // Records msg.sender as last spender
     // Auto-registers wallet for leaderboard
     function pushTimer()

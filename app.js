@@ -390,7 +390,7 @@ function ArenaTab({ wallet, timer }) {
       showStatus("Transaction sent...", "pending");
       await tx.wait();
       DebugHub.logCheckpoint("Push Timer Confirmed", "pass");
-      showStatus("Timer pushed -5 minutes!", "success");
+      showStatus("Timer pushed -40 hours!", "success");
       timer.syncChain();
       await loadArena();
     } catch (e) {
@@ -478,7 +478,7 @@ function ArenaTab({ wallet, timer }) {
       ),
       React.createElement("div", { className: "push-info" },
         React.createElement("span", { className: "push-info-text" },
-          "Spend 1 DAPP → timer drops 5 minutes"
+          "Spend 1 DAPP → timer drops 40 hours"
         ),
         React.createElement("span", { className: "push-info-cost" },
           "1 DAPP"
@@ -501,7 +501,7 @@ function ArenaTab({ wallet, timer }) {
                 )
               : !gameActive ? "Game Not Started"
               : !hasEnoughDapp ? "Not Enough DAPP"
-              : "Push Timer −5min"
+              : "Push Timer −40h"
           )
     ),
 
