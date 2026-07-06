@@ -45,6 +45,7 @@ const ABI_TIMER = [
   "function getTimerDisplay() view returns (uint256,uint256,uint256)",
   "function getGameState() view returns (bool,bool,uint256,address,uint256,uint8)",
   "function pushTimer()",
+  "function pushAmount() view returns (uint256)",
   "function isGameActive() view returns (bool)",
   "function lastSpender() view returns (address)",
   "function registeredWallets(uint256) view returns (address)",
@@ -65,6 +66,17 @@ const ABI_TREASURY = [
   "function previewEmissionRate(uint256 prizePoolWei) view returns (uint256 tokensPerSecond, uint256 tokensPerHour, uint256 totalBudget)",
   "function getTreasuryBalance() view returns (uint256)",
 ];
+
+// Formats a push amount in seconds for display,
+// e.g. 144000 → "40 hours" / "40h"
+function formatPushAmount(secs, short = false) {
+  if (secs >= 3600 && secs % 3600 === 0) {
+    const h = secs / 3600;
+    return short ? `${h}h` : `${h} hour${h === 1 ? "" : "s"}`;
+  }
+  const m = Math.round(secs / 60);
+  return short ? `${m}min` : `${m} minute${m === 1 ? "" : "s"}`;
+}
 
 // Wraps any promise with a timeout so stale
 // providers fail fast instead of hanging forever
@@ -296,6 +308,7 @@ function ArenaTab({ wallet, timer }) {
   const [pooledEth, setPooledEth]     = useState("0.0000");
   const [stakeCount, setStakeCount]   = useState("0");
   const [pushing, setPushing]         = useState(false);
+  const [pushSecs, setPushSecs]       = useState(40 * 3600);
   const [allowance, setAllowance]     = useState(
     ethers.BigNumber.from(0)
   );
@@ -307,12 +320,13 @@ function ArenaTab({ wallet, timer }) {
       const staking  = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, provider);
       const timerC   = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, provider);
 
-      const [prize, pooled, count, spender] = await withTimeout(
+      const [prize, pooled, count, spender, pushAmt] = await withTimeout(
   Promise.all([
         vault.getPrizeBalance(),
         staking.totalPooledETH(),
         staking.activeStakeCount(),
         timerC.lastSpender(),
+        timerC.pushAmount(),
       ])
      );
     
@@ -325,6 +339,7 @@ function ArenaTab({ wallet, timer }) {
       );
       setStakeCount(count.toString());
       setLastSpender(spender);
+      setPushSecs(pushAmt.toNumber());
 
       // Per-wallet reads — only if connected
       if (address) {
@@ -390,7 +405,7 @@ function ArenaTab({ wallet, timer }) {
       showStatus("Transaction sent...", "pending");
       await tx.wait();
       DebugHub.logCheckpoint("Push Timer Confirmed", "pass");
-      showStatus("Timer pushed -40 hours!", "success");
+      showStatus(`Timer pushed -${formatPushAmount(pushSecs)}!`, "success");
       timer.syncChain();
       await loadArena();
     } catch (e) {
@@ -478,7 +493,7 @@ function ArenaTab({ wallet, timer }) {
       ),
       React.createElement("div", { className: "push-info" },
         React.createElement("span", { className: "push-info-text" },
-          "Spend 1 DAPP → timer drops 40 hours"
+          `Spend 1 DAPP → timer drops ${formatPushAmount(pushSecs)}`
         ),
         React.createElement("span", { className: "push-info-cost" },
           "1 DAPP"
@@ -501,7 +516,7 @@ function ArenaTab({ wallet, timer }) {
                 )
               : !gameActive ? "Game Not Started"
               : !hasEnoughDapp ? "Not Enough DAPP"
-              : "Push Timer −40h"
+              : `Push Timer −${formatPushAmount(pushSecs, true)}`
           )
     ),
 
