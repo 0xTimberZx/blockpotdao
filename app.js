@@ -168,7 +168,7 @@ function useWallet() {
         parseFloat(ethers.utils.formatEther(_bal)).toFixed(4)
       );
 
-      DebugHub.startSession();
+      DebugHub.startSession(_address);
       DebugHub.logCheckpoint("Wallet Connected", "pass");
 
       showStatus("Wallet connected.", "success");
@@ -281,10 +281,13 @@ useEffect(() => {
       // New wallet = new telemetry session, always
       DebugHub.endSession();
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
+      const _address  = ethers.utils.getAddress(accounts[0]);
       setProvider(_provider);
       setSigner(_provider.getSigner());
-      setAddress(ethers.utils.getAddress(accounts[0]));
-      DebugHub.startSession();
+      setAddress(_address);
+      // SDK v1.1.0 accepts the address directly — avoids
+      // null-wallet sessions from deprecated selectedAddress
+      DebugHub.startSession(_address);
       DebugHub.logCheckpoint("Wallet Switched", "pass");
     }
   };
