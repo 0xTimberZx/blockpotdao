@@ -4,7 +4,7 @@ const ADDRESSES = {
   treasury:    "0x9935aea651d21Af9C69fE6C650cD7C272e49e270",
   prizeVault:  "0x59B2971AD75B8cc361656515B04aBed591Fe99Ae",
   stakingPool: "0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C",
-  timerGame:   "0x238D6aC182E2C8b12209BA0DfcCdc91725ed496F",
+  timerGame:   "0x95C491280c172A963C7DeB559d8b4CAF95986744",
   faucet:      "0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA",
 };
 
@@ -46,6 +46,7 @@ const ABI_TIMER = [
   "function getGameState() view returns (bool,bool,uint256,address,uint256,uint8)",
   "function pushTimer()",
   "function pushAmount() view returns (uint256)",
+  "function PUSH_AMOUNT() view returns (uint256)",
   "function isGameActive() view returns (bool)",
   "function lastSpender() view returns (address)",
   "function registeredWallets(uint256) view returns (address)",
@@ -326,7 +327,12 @@ function ArenaTab({ wallet, timer }) {
         staking.totalPooledETH(),
         staking.activeStakeCount(),
         timerC.lastSpender(),
-        timerC.pushAmount(),
+        // Getter name varies across deployments
+        // (pushAmount vs PUSH_AMOUNT); oldest have
+        // neither — fall back to 40h, don't fail load
+        timerC.pushAmount()
+          .catch(() => timerC.PUSH_AMOUNT())
+          .catch(() => ethers.BigNumber.from(40 * 3600)),
       ])
      );
     

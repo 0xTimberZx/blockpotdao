@@ -7,7 +7,7 @@
 | Treasury v2     | 0x9935aea651d21Af9C69fE6C650cD7C272e49e270 | Sourcify ok |
 | PrizeVault v3   | 0x59B2971AD75B8cc361656515B04aBed591Fe99Ae | Sourcify ok |
 | StakingPool v3  | 0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C | Sourcify ok |
-| TimerGame v3    | 0x238D6aC182E2C8b12209BA0DfcCdc91725ed496F | Sourcify ok |
+| TimerGame v5    | 0x95C491280c172A963C7DeB559d8b4CAF95986744 | pending     |
 | FaucetVault v2  | 0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA | Sourcify ok |
 
 ## Deprecated
@@ -15,6 +15,8 @@
 | PrizeVault v2   | 0x88008bd915B1E00066fcF0c1aD638D70f1BB7182 | retired    |
 | Treasury v1     | 0x8E89e183B2eD82f64972EFCDE70C12319cD70b26 | retired    |
 | TimerGame v2    | 0xF049f986f5b9eB9e8dc5AA5eFa01613311D87ab4 | retired    |
+| TimerGame v3    | 0x238D6aC182E2C8b12209BA0DfcCdc91725ed496F | retired    |
+| TimerGame v4    | 0xc871D31CdFc3d1df80B2a316B99b7fa86ccB4940 | retired — old source, no setPushAmount |
 
 ## Deployment Log
 - [x] DAPPToken deployed + verified
