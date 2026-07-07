@@ -456,8 +456,8 @@ contract TimerGame {
     ) external onlyOwner {
         require(newAmount >= 1 minutes, "Push too small");
         require(newAmount <= TIMER_MAX, "Push too large");
-        emit PushAmountChanged(pushAmount, newAmount);
-        pushAmount = newAmount;
+        emit PushAmountChanged(PUSH_AMOUNT, newAmount);
+        PUSH_AMOUNT = newAmount;
     }
 
     // Manual win trigger — owner authorized
