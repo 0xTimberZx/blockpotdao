@@ -60,7 +60,7 @@ contract TimerGame {
     uint256 public constant LEADERBOARD_WINDOW = 650 hours;
 
     // Owner-adjustable via setPushAmount
-    uint256 public pushAmount = 40 hours;
+    uint256 public PUSH_AMOUNT = 40 hours;
 
     // ── STATE ─────────────────────────────────
     address public owner;
