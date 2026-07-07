@@ -145,11 +145,20 @@ Found and fixed retroactively in (June 2026):
   card) - letters with descenders (g, y, p) were clipped at the
   bottom. Fixed via line-height 1.35 -> 1.5 + 4px bottom padding
   (June 2026)
+- UNSUPPORTED_OPERATION "unknown account #0" - BlockpotDAO approve()
+  on Brave tablet. Mobile wallet dropped the account while browser
+  was backgrounded; app kept the connect-time signer. Export showed
+  a session with wallet: null while UI displayed the old address.
+  Fixed via getFreshSigner() re-validating eth_accounts before every
+  write + accountsChanged handling (July 2026). Playbook saved in
+  .claude/skills/wallet-switch-fix/
 
 ## Error catalog (ERROR_EXPLANATIONS in debughub/app.js)
 Current codes covered: -32002, -32603, 4001, -32000, -32700, -32601.
 Add new codes here AND in app.js as they're encountered - this list
 should stay in sync with the live lookup table.
+- TODO: add UNSUPPORTED_OPERATION (string code, not numeric) to
+  debughub/app.js - "wallet session dropped, reconnect wallet"
 
 ---
 
