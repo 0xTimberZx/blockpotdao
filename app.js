@@ -190,6 +190,40 @@ function useWallet() {
     clearStatus();
   }
 
+  // Rebuild the signer at transaction time.
+  // Mobile wallets drop the active account when the
+  // browser is backgrounded — a signer captured at
+  // connect time then fails with "unknown account #0".
+  async function getFreshSigner() {
+    if (typeof window.ethereum === "undefined") return null;
+    try {
+      let accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      if (!accounts || accounts.length === 0) {
+        // Session dropped — ask wallet to re-expose accounts
+        accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+      }
+      if (!accounts || accounts.length === 0) {
+        showStatus("Wallet session expired. Reconnect your wallet.", "error");
+        return null;
+      }
+      const _provider = new ethers.providers.Web3Provider(window.ethereum);
+      const _signer   = _provider.getSigner();
+      const _address  = await _signer.getAddress();
+      setProvider(_provider);
+      setSigner(_signer);
+      if (_address !== address) setAddress(_address);
+      return _signer;
+    } catch (e) {
+      DebugHub.logError("getFreshSigner", e);
+      showStatus("Wallet session expired. Reconnect your wallet.", "error");
+      return null;
+    }
+  }
+
   // Re-init provider when app comes back to foreground
 // Mobile wallets often drop the connection when
 // the browser is backgrounded for a few minutes
@@ -199,6 +233,12 @@ useEffect(() => {
   const handleVisibility = async () => {
     if (document.visibilityState === "visible" && address) {
       try {
+        // Skip if the wallet no longer exposes an account —
+        // installing a signer here would just fail later
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        if (!accounts || accounts.length === 0) return;
         const _provider = new ethers.providers.Web3Provider(window.ethereum);
         const _signer   = _provider.getSigner();
         const _bal      = await _provider.getBalance(address);
@@ -218,10 +258,35 @@ useEffect(() => {
     document.removeEventListener("visibilitychange", handleVisibility);
 }, [address]);
 
+// Track account changes so the UI never claims a
+// connection the wallet has already dropped
+useEffect(() => {
+  if (!window.ethereum || !window.ethereum.on) return;
+
+  const onAccountsChanged = (accounts) => {
+    if (!accounts || accounts.length === 0) {
+      disconnect();
+      showStatus("Wallet disconnected. Reconnect to continue.", "error");
+    } else if (
+      address &&
+      accounts[0].toLowerCase() !== address.toLowerCase()
+    ) {
+      const _provider = new ethers.providers.Web3Provider(window.ethereum);
+      setProvider(_provider);
+      setSigner(_provider.getSigner());
+      setAddress(ethers.utils.getAddress(accounts[0]));
+    }
+  };
+
+  window.ethereum.on("accountsChanged", onAccountsChanged);
+  return () =>
+    window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+}, [address]);
+
   return {
     provider, signer, address, ethBalance,
     connecting, status, showStatus, clearStatus,
-    connect, disconnect,
+    connect, disconnect, getFreshSigner,
   };
 }
 
@@ -300,7 +365,7 @@ function useTimer(provider) {
 
 // ── ARENA TAB ─────────────────────────────
 function ArenaTab({ wallet, timer }) {
-  const { signer, address, provider, showStatus } = wallet;
+  const { signer, address, provider, showStatus, getFreshSigner } = wallet;
   const { timerDisplay, pressureClass, gameActive } = timer;
 
   const [prizeEth, setPrizeEth]       = useState("0.0000");
@@ -367,12 +432,14 @@ function ArenaTab({ wallet, timer }) {
   useEffect(() => { loadArena(); }, [address, provider]);
 
   async function handleApprove() {
-    if (!signer) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       showStatus("Approving DAPP for timer...", "pending");
-      const token = new ethers.Contract(ADDRESSES.dappToken, ABI_TOKEN, signer);
+      const token = new ethers.Contract(ADDRESSES.dappToken, ABI_TOKEN, s);
       const max   = ethers.constants.MaxUint256;
-      const nonce = await signer.provider.getTransactionCount(address, "pending");
+      const addr  = await s.getAddress();
+      const nonce = await s.provider.getTransactionCount(addr, "pending");
       DebugHub.logCheckpoint("Approve Requested", "pass");
       const tx    = await token.approve(ADDRESSES.timerGame, max, { nonce: nonce });
       DebugHub.logCheckpoint("Approve Submitted", "pass");
@@ -389,13 +456,15 @@ function ArenaTab({ wallet, timer }) {
   }
 
   async function handlePush() {
-    if (!signer) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       setPushing(true);
       showStatus("Pushing timer — confirm in wallet...", "pending");
-      const game     = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, signer);
-      const feeData  = await signer.provider.getFeeData();
-      const nonce    = await signer.provider.getTransactionCount(address, "pending");
+      const game     = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, s);
+      const feeData  = await s.provider.getFeeData();
+      const addr     = await s.getAddress();
+      const nonce    = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst   = await game.estimateGas.pushTimer();
       DebugHub.logPerf("gasEstimate_pushTimer", Date.now() - __gasStart);
@@ -534,7 +603,7 @@ function ArenaTab({ wallet, timer }) {
 
 // ── MY STAKES TAB ─────────────────────────
 function MyStakesTab({ wallet }) {
-  const { signer, address, provider, showStatus } = wallet;
+  const { signer, address, provider, showStatus, getFreshSigner } = wallet;
 
   const [stakes, setStakes]         = useState([]);
   const [ethInput, setEthInput]     = useState("");
@@ -672,14 +741,17 @@ useEffect(() => {
 }, [stakes.length]);
 
   async function handleStake() {
-    if (!signer || !ethInput) return;
+    if (!ethInput) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       setStaking(true);
       showStatus("Staking ETH — confirm in wallet...", "pending");
-      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
+      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, s);
       const value   = ethers.utils.parseEther(ethInput);
-      const feeData = await signer.provider.getFeeData();
-      const nonce   = await signer.provider.getTransactionCount(address, "pending");
+      const feeData = await s.provider.getFeeData();
+      const addr    = await s.getAddress();
+      const nonce   = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.stake({ value });
       DebugHub.logPerf("gasEstimate_stake", Date.now() - __gasStart);
@@ -708,12 +780,14 @@ useEffect(() => {
   }
 
   async function handleUnstake(idx) {
-    if (!signer) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       showStatus("Unstaking — confirm in wallet...", "pending");
-      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
-      const feeData = await signer.provider.getFeeData();
-      const nonce   = await signer.provider.getTransactionCount(address, "pending");
+      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, s);
+      const feeData = await s.provider.getFeeData();
+      const addr    = await s.getAddress();
+      const nonce   = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.unstake(idx);
       DebugHub.logPerf("gasEstimate_unstake", Date.now() - __gasStart);
@@ -738,12 +812,14 @@ useEffect(() => {
   }
 
   async function handleClaim(idx) {
-    if (!signer) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       showStatus("Claiming rewards — confirm in wallet...", "pending");
-      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
-      const feeData = await signer.provider.getFeeData();
-      const nonce   = await signer.provider.getTransactionCount(address, "pending");
+      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, s);
+      const feeData = await s.provider.getFeeData();
+      const addr    = await s.getAddress();
+      const nonce   = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.claimRewards(idx);
       DebugHub.logPerf("gasEstimate_claimRewards", Date.now() - __gasStart);
@@ -768,12 +844,14 @@ useEffect(() => {
   }
 
   async function handleUpgrade(idx) {
-    if (!signer) return;
+    const s = await getFreshSigner();
+    if (!s) return;
     try {
       showStatus("Upgrading tier — confirm in wallet...", "pending");
-      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, signer);
-      const feeData = await signer.provider.getFeeData();
-      const nonce   = await signer.provider.getTransactionCount(address, "pending");
+      const pool    = new ethers.Contract(ADDRESSES.stakingPool, ABI_STAKING, s);
+      const feeData = await s.provider.getFeeData();
+      const addr    = await s.getAddress();
+      const nonce   = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst  = await pool.estimateGas.upgradeTier(idx);
       DebugHub.logPerf("gasEstimate_upgradeTier", Date.now() - __gasStart);
