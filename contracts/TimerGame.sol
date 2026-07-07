@@ -172,7 +172,7 @@ contract TimerGame {
     }
 // ── PUSH TIMER ────────────────────────────
     // Costs exactly 1 DAPP token
-    // Pushes timer DOWN by pushAmount (default 40 hours)
+    // Pushes timer DOWN by PUSH_AMOUNT (default 40 hours)
     // Records msg.sender as last spender
     // Auto-registers wallet for leaderboard
     function pushTimer()
@@ -205,8 +205,8 @@ contract TimerGame {
 
         // Update timer state
         // Snapshot current value then subtract push
-        timerValue     = current > pushAmount
-            ? current - pushAmount
+        timerValue     = current > PUSH_AMOUNT
+            ? current - PUSH_AMOUNT
             : 0;
         lastUpdateTime = block.timestamp;
 

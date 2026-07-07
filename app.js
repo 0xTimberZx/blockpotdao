@@ -46,6 +46,7 @@ const ABI_TIMER = [
   "function getGameState() view returns (bool,bool,uint256,address,uint256,uint8)",
   "function pushTimer()",
   "function pushAmount() view returns (uint256)",
+  "function PUSH_AMOUNT() view returns (uint256)",
   "function isGameActive() view returns (bool)",
   "function lastSpender() view returns (address)",
   "function registeredWallets(uint256) view returns (address)",
@@ -326,11 +327,12 @@ function ArenaTab({ wallet, timer }) {
         staking.totalPooledETH(),
         staking.activeStakeCount(),
         timerC.lastSpender(),
-        // Older deployments lack pushAmount() —
-        // fall back to 40h instead of failing the load
-        timerC.pushAmount().catch(() =>
-          ethers.BigNumber.from(40 * 3600)
-        ),
+        // Getter name varies across deployments
+        // (pushAmount vs PUSH_AMOUNT); oldest have
+        // neither — fall back to 40h, don't fail load
+        timerC.pushAmount()
+          .catch(() => timerC.PUSH_AMOUNT())
+          .catch(() => ethers.BigNumber.from(40 * 3600)),
       ])
      );
     
