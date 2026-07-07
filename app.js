@@ -200,15 +200,21 @@ function useWallet() {
       let accounts = await window.ethereum.request({
         method: "eth_accounts",
       });
+      let recovered = false;
       if (!accounts || accounts.length === 0) {
         // Session dropped — ask wallet to re-expose accounts
+        DebugHub.logSecurity("Wallet Session Check", "fail");
         accounts = await window.ethereum.request({
           method: "eth_requestAccounts",
         });
+        recovered = accounts && accounts.length > 0;
       }
       if (!accounts || accounts.length === 0) {
         showStatus("Wallet session expired. Reconnect your wallet.", "error");
         return null;
+      }
+      if (recovered) {
+        DebugHub.logCheckpoint("Wallet Session Recovered", "pass");
       }
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       const _signer   = _provider.getSigner();
@@ -265,22 +271,32 @@ useEffect(() => {
 
   const onAccountsChanged = (accounts) => {
     if (!accounts || accounts.length === 0) {
+      DebugHub.logSecurity("Wallet Dropped", "fail");
       disconnect();
       showStatus("Wallet disconnected. Reconnect to continue.", "error");
     } else if (
       address &&
       accounts[0].toLowerCase() !== address.toLowerCase()
     ) {
+      // New wallet = new telemetry session, always
+      DebugHub.endSession();
       const _provider = new ethers.providers.Web3Provider(window.ethereum);
       setProvider(_provider);
       setSigner(_provider.getSigner());
       setAddress(ethers.utils.getAddress(accounts[0]));
+      DebugHub.startSession();
+      DebugHub.logCheckpoint("Wallet Switched", "pass");
     }
   };
 
+  const onUnload = () => DebugHub.endSession();
+
   window.ethereum.on("accountsChanged", onAccountsChanged);
-  return () =>
+  window.addEventListener("beforeunload", onUnload);
+  return () => {
     window.ethereum.removeListener("accountsChanged", onAccountsChanged);
+    window.removeEventListener("beforeunload", onUnload);
+  };
 }, [address]);
 
   return {
