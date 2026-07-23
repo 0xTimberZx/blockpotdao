@@ -532,6 +532,9 @@ function ArenaTab({ wallet, timer }) {
       }, timerDisplay),
       React.createElement("div", { className: "timer-sublabel" },
         "HH : MM : SS"
+      ),
+      React.createElement("div", { className: "timer-tagline" },
+        "Stake your loyalty to the DAO. Help us set the clock to zero."
       )
     ),
 
@@ -616,6 +619,31 @@ function ArenaTab({ wallet, timer }) {
 
     !address && React.createElement("div", { className: "empty-state" },
       "Connect your wallet to push the timer and view your balances."
+    ),
+
+    // How to play — rules summary
+    React.createElement("div", { className: "rules-card" },
+      React.createElement("div", { className: "rules-title" }, "How to play"),
+      React.createElement("ol", { className: "rules-list" },
+        React.createElement("li", null,
+          React.createElement("strong", null, "Stake ETH"),
+          " in My Stakes to earn DAPP. Longer stakes climb tiers (T2 at 15 days ×1.25, T3 at 30 days ×1.35) and earn faster."
+        ),
+        React.createElement("li", null,
+          React.createElement("strong", null, "Spend 1 DAPP to push"),
+          " the timer down. The clock starts at 48 h and drifts back up on its own while nobody pushes."
+        ),
+        React.createElement("li", null,
+          React.createElement("strong", null, "Push it to zero"),
+          " and you win the ",
+          React.createElement("em", null, "entire"),
+          " prize pool as the last spender."
+        ),
+        React.createElement("li", null,
+          React.createElement("strong", null, "Or let it drift to the 654 h ceiling"),
+          " — then the top two ranked stakers split the pool 70 / 30. Check the Leaderboard to see where you stand."
+        )
+      )
     )
   );
 }
@@ -1143,6 +1171,34 @@ function LeaderboardTab({ wallet }) {
     address && w.toLowerCase() === address.toLowerCase();
 
   return React.createElement("div", { className: "tab-content" },
+
+    // Leaderboard explainer
+    React.createElement("div", { className: "rules-card" },
+      React.createElement("div", { className: "rules-title" },
+        "How rankings work"
+      ),
+      React.createElement("p", { className: "rules-text" },
+        "If the clock drifts up to the 654-hour ceiling instead of being pushed to zero, the top two wallets here split the prize pool 70 / 30. Wallets are ranked by a cascade:"
+      ),
+      React.createElement("ol", { className: "rules-list" },
+        React.createElement("li", null,
+          React.createElement("strong", null, "Highest tier"),
+          " first (T3 > T2 > T1)."
+        ),
+        React.createElement("li", null,
+          React.createElement("strong", null, "Longest time held"),
+          " in that tier breaks ties."
+        ),
+        React.createElement("li", null,
+          React.createElement("strong", null, "Largest stake"),
+          " is the final tiebreaker."
+        )
+      ),
+      React.createElement("p", { className: "rules-text rules-note" },
+        "Only stakes active within the last 650 hours are counted. Stake ETH and push the timer at least once to appear here."
+      )
+    ),
+
     React.createElement("div", { className: "card" },
       React.createElement("div", { className: "card-title" },
         `Rankings (${entries.length})`
