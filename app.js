@@ -1332,7 +1332,31 @@ function App() {
     }),
     tab === "leaderboard" && React.createElement(LeaderboardTab, {
       wallet
-    })
+    }),
+
+    // Footer
+    React.createElement("footer", { className: "app-footer" },
+      React.createElement("a", {
+        className: "footer-link",
+        href:      "https://0xtimberzx.github.io/MyDapp/debughub/",
+        target:    "_blank",
+        rel:       "noopener noreferrer",
+      }, "DebugHub"),
+      React.createElement("span", { className: "footer-sep" }, "·"),
+      React.createElement("a", {
+        className: "footer-link",
+        href:      "https://timbswap.xyz",
+        target:    "_blank",
+        rel:       "noopener noreferrer",
+      }, "TimbSwap"),
+      React.createElement("span", { className: "footer-sep" }, "·"),
+      React.createElement("a", {
+        className: "footer-link",
+        href:      "https://0xtimberzx.github.io/MyDapp/faucet/",
+        target:    "_blank",
+        rel:       "noopener noreferrer",
+      }, "Faucet")
+    )
   );
 }
 

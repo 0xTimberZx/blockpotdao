@@ -776,3 +776,26 @@ button {
 .text-sm { font-size: 0.78rem; }
 .mt-8 { margin-top: 8px; }
 .mt-12 { margin-top: 12px; }
+
+/* ── FOOTER ──────────────────────────────── */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 18px 0 8px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-link {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s;
+}
+
+.footer-link:hover { color: var(--orange); }
+
+.footer-sep { color: var(--text-dim); font-size: 0.76rem; }
