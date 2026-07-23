@@ -1,4 +1,91 @@
- BlockpotDAO (TimerGame) - Contract Registry v2
+# BlockpotDAO
+
+A last-spender countdown game on **Arbitrum Sepolia** testnet. Stake ETH to
+earn DAPP tokens, then spend DAPP to push a shared countdown clock toward
+zero. Whoever pushes it to zero takes the entire prize pool — but if everyone
+walks away and the clock drifts up to its ceiling instead, the most loyal
+stakers split the pot.
+
+**▶ Play:** https://0xtimberzx.github.io/blockpotdao/
+**🚰 Need testnet DAPP/ETH?** https://0xtimberzx.github.io/MyDapp/faucet/
+**⛓ Network:** Arbitrum Sepolia (Chain ID `421614`)
+
+---
+
+## How it works (the rules)
+
+1. **Stake ETH** in the StakingPool to start earning DAPP token emissions.
+   The longer you stake, the higher your tier and the faster you earn:
+   - **Tier 1** — base rate (×1.00)
+   - **Tier 2** — after 15 days staked (×1.25)
+   - **Tier 3** — after 30 days staked (×1.35)
+2. **Spend 1 DAPP to push the timer.** Each push drops the clock by a fixed
+   amount (currently 40 hours, owner-adjustable on-chain). The clock starts
+   at 48 hours and **drifts upward on its own** whenever nobody is pushing.
+3. **Two ways the game ends:**
+   - **Countdown win** — someone pushes the clock to **zero**. That last
+     spender takes the **entire prize pool**.
+   - **Timeout win** — nobody pushes and the clock drifts all the way up to
+     its **654-hour ceiling**. The prize pool is split **70/30** between the
+     top two ranked stakers on the leaderboard.
+
+You need DAPP to push, and you earn DAPP by staking — so staking is both how
+you fund your pushes and how you qualify for the timeout payout.
+
+## Leaderboard ranking
+
+The leaderboard ranks every wallet that has staked, using a cascade:
+
+1. **Highest tier** (T3 > T2 > T1)
+2. **Longest time held** in that tier
+3. **Largest stake size** as the tiebreaker
+
+Only stakes active within the last 650 hours count. The top two wallets are
+the ones who split the pot on a timeout win, so the leaderboard is a live
+view of who stands to win if the clock is never pushed to zero.
+
+## Contracts (Arbitrum Sepolia)
+
+| Contract   | Address | Explorer |
+|------------|---------|----------|
+| DAPPToken  | `0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04` | [Arbiscan](https://sepolia.arbiscan.io/address/0x3d0cB8929c22F93A9dd33921E6f43C1621FCfC04) |
+| Treasury   | `0x9935aea651d21Af9C69fE6C650cD7C272e49e270` | [Arbiscan](https://sepolia.arbiscan.io/address/0x9935aea651d21Af9C69fE6C650cD7C272e49e270) |
+| PrizeVault | `0x59B2971AD75B8cc361656515B04aBed591Fe99Ae` | [Arbiscan](https://sepolia.arbiscan.io/address/0x59B2971AD75B8cc361656515B04aBed591Fe99Ae) |
+| StakingPool| `0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C` | [Arbiscan](https://sepolia.arbiscan.io/address/0xA813a05a01AeA07A6a0c0ca0a5D6491343255D4C) |
+| TimerGame  | `0x95C491280c172A963C7DeB559d8b4CAF95986744` | [Arbiscan](https://sepolia.arbiscan.io/address/0x95C491280c172A963C7DeB559d8b4CAF95986744) |
+| FaucetVault| `0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA` | [Arbiscan](https://sepolia.arbiscan.io/address/0xe39900fCcA537148B2AC053c867E5ae4716Cc0BA) |
+
+All contracts are source-verified on Sourcify. The full registry, including
+deprecated versions, is in the [Contract Registry](#blockpotdao-timergame---contract-registry-v2)
+section below.
+
+## Key contract functions
+
+**StakingPool** — `stake()` (payable), `unstake(index)`,
+`claimRewards(index)`, `upgradeTier(index)`, `getBestStake(wallet)` (view)
+
+**TimerGame** — `pushTimer()`, `getCurrentTimer()` (view),
+`isGameActive()` (view), `getTop2()` (view leaderboard winners),
+`setPushAmount(seconds)` (owner), `startGame()` (owner)
+
+**DAPPToken** — standard ERC-20 (`approve`, `transfer`, `balanceOf`);
+push requires a one-time `approve` of the TimerGame as spender.
+
+**PrizeVault** — holds the ETH prize pool; `getPrizeBalance()` (view).
+Payouts are triggered only by the TimerGame on a win.
+
+## Open source
+
+Released under the [MIT License](LICENSE). This is unaudited software running
+on a **testnet** for demonstration and learning — no real funds are involved,
+and it should not be treated as production-ready or financial advice. Frontend
+is plain React + ethers v5 (no build step); contracts are Solidity `0.8.20`.
+Telemetry is provided by the in-house [DebugHub](https://0xtimberzx.github.io/MyDapp/debughub/)
+SDK. Contributions and forks welcome.
+
+---
+
+# BlockpotDAO (TimerGame) - Contract Registry v2
 
 ## Active Contracts
 | Contract        | Address                                    | Verified    |
