@@ -10,6 +10,18 @@ stakers split the pot.
 **🚰 Need testnet DAPP/ETH?** https://0xtimberzx.github.io/MyDapp/faucet/
 **⛓ Network:** Arbitrum Sepolia (Chain ID `421614`)
 
+### DAPP token ecosystem
+
+BlockpotDAO is one of several DApps that share the same DAPP token. Ways to
+get and use DAPP beyond staking here:
+
+- **🔁 Buy / farm DAPP:** [timbswap.xyz](https://timbswap.xyz) — swap for DAPP
+  or provide liquidity and farm it on TimbSwap.
+- **🚰 Faucet:** [0xFaucet](https://0xtimberzx.github.io/MyDapp/faucet/) — free
+  testnet DAPP + ETH to get started.
+- **💬 Spend DAPP:** [MessageBoard (My First DApp)](https://0xtimberzx.github.io/MyDapp/) —
+  use DAPP tokens to compile and publish messages on-chain.
+
 ---
 
 ## How it works (the rules)
