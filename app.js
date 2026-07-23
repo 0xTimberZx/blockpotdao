@@ -621,9 +621,9 @@ function ArenaTab({ wallet, timer }) {
       "Connect your wallet to push the timer and view your balances."
     ),
 
-    // How to play — rules summary
+    // The Goal — rules summary
     React.createElement("div", { className: "rules-card" },
-      React.createElement("div", { className: "rules-title" }, "How to play"),
+      React.createElement("div", { className: "rules-title" }, "The Goal"),
       React.createElement("ol", { className: "rules-list" },
         React.createElement("li", null,
           React.createElement("strong", null, "Stake ETH"),
