@@ -13,8 +13,15 @@
   <div id="root"></div>
 
   <!-- DebugHub SDK -->
-  <script>window.DEBUGHUB_CONFIG = { appName: "BlockpotDAO" };</script>
-  <script src="https://0xtimberzx.github.io/MyDapp/debughub/sdk/debugger.js"></script>
+  <!-- supabaseUrl/supabaseKey enable the network sink so this app's
+       telemetry reaches the shared hub, not just localStorage. The key
+       is a publishable client key — RLS is the security boundary. -->
+  <script>window.DEBUGHUB_CONFIG = {
+    appName:     "BlockpotDAO",
+    supabaseUrl: "https://ipyfodnidwsdvwqrcjrl.supabase.co",
+    supabaseKey: "sb_publishable_yg4wjMwvGrlf5C9vqs2nkw_Hfks0Ux9"
+  };</script>
+  <script src="https://0xtimberzx.github.io/MyDapp/debughub/sdk/debugger.js?v=1.2.1"></script>
   <script>
     if (!window.DebugHub) {
       window.DebugHub = {
