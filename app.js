@@ -393,6 +393,7 @@ function ArenaTab({ wallet, timer }) {
   const [pooledEth, setPooledEth]     = useState("0.0000");
   const [stakeCount, setStakeCount]   = useState("0");
   const [pushing, setPushing]         = useState(false);
+  const pushInFlight                   = useRef(false);
   const [pushSecs, setPushSecs]       = useState(40 * 3600);
   const [allowance, setAllowance]     = useState(
     ethers.BigNumber.from(0)
@@ -475,26 +476,49 @@ function ArenaTab({ wallet, timer }) {
   }
 
   async function handlePush() {
+    if (pushInFlight.current) return;
+    pushInFlight.current = true;
+    setPushing(true);
+
     const s = await getFreshSigner();
-    if (!s) return;
+    if (!s) {
+      pushInFlight.current = false;
+      setPushing(false);
+      return;
+    }
+
     try {
-      setPushing(true);
       showStatus("Pushing timer — confirm in wallet...", "pending");
       const game     = new ethers.Contract(ADDRESSES.timerGame, ABI_TIMER, s);
       const feeData  = await s.provider.getFeeData();
       const addr     = await s.getAddress();
-      const nonce    = await s.provider.getTransactionCount(addr, "pending");
       const __gasStart = Date.now();
       const gasEst   = await game.estimateGas.pushTimer();
       DebugHub.logPerf("gasEstimate_pushTimer", Date.now() - __gasStart);
       const gasLimit = gasEst.mul(150).div(100);
-      DebugHub.logCheckpoint("Push Timer Requested", "pass");
-      const tx = await game.pushTimer({
-        nonce,
-        gasLimit,
-        maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
-      });
+
+      let tx;
+      let nonceRetry = false;
+      while (!tx) {
+        const nonce = await s.provider.getTransactionCount(addr, "pending");
+        DebugHub.logCheckpoint("Push Timer Requested", "pass");
+        try {
+          tx = await game.pushTimer({
+            nonce,
+            gasLimit,
+            maxFeePerGas:         feeData.maxFeePerGas.mul(130).div(100),
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas.mul(130).div(100),
+          });
+        } catch (e) {
+          const message = e.message || "";
+          const nonceExpired = e.code === "NONCE_EXPIRED"
+            || /nonce (has already been used|is too low|too low)/i.test(message);
+          if (nonceRetry || !nonceExpired) throw e;
+          nonceRetry = true;
+          showStatus("Nonce changed — retrying transaction...", "pending");
+        }
+      }
+
       DebugHub.logCheckpoint("Push Timer Submitted", "pass");
       showStatus("Transaction sent...", "pending");
       await tx.wait();
@@ -507,6 +531,7 @@ function ArenaTab({ wallet, timer }) {
       DebugHub.logCheckpoint("Push Timer Confirmed", "fail");
       showStatus(e.reason || e.message || "Push failed.", "error");
     } finally {
+      pushInFlight.current = false;
       setPushing(false);
     }
   }
